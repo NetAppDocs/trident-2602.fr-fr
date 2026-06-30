@@ -1,0 +1,84 @@
+---
+sidebar: sidebar 
+permalink: trident-managing-k8s/upgrade-trident.html 
+keywords: upgrade, trident, methods, operator, tridentctl, helm 
+summary: 'Trident adopte un rythme de publication de quatre mois, avec trois mises à jour majeures chaque année. Chaque nouvelle version s"appuie sur les précédentes, offrant de nouvelles fonctionnalités et des améliorations de performances ainsi que des corrections de bogues et des optimisations. Il est recommandé de mettre à jour au moins une fois par an pour profiter des nouvelles fonctionnalités de Trident.' 
+---
+= Mettre à niveau Trident
+:hardbreaks:
+:allow-uri-read: 
+:icons: font
+:imagesdir: ../media/
+
+
+[role="lead"]
+À compter de la version 24.02, Trident adopte un cycle de publication de quatre mois, avec trois mises à jour majeures chaque année civile. Chaque nouvelle version s'appuie sur les précédentes et propose de nouvelles fonctionnalités, des améliorations de performances, des corrections de bogues et des améliorations. Nous vous encourageons à effectuer une mise à jour au moins une fois par an afin de profiter des nouvelles fonctionnalités de Trident.
+
+
+
+== Considérations avant la mise à niveau
+
+Lors de la mise à niveau vers la dernière version de Trident, tenez compte des points suivants :
+
+* Une seule instance de Trident doit être installée dans tous les espaces de noms d'un cluster Kubernetes donné.
+* Trident 23.07 et versions ultérieures nécessitent des instantanés de volume v1 et ne prennent plus en charge les instantanés alpha ou beta.
+* Lors de la mise à niveau, il est important de fournir `parameter.fsType` dans `StorageClasses` utilisé par Trident. Vous pouvez supprimer et recréer `StorageClasses` sans interrompre les volumes existants.
++
+** Il s'agit d'une **exigence** pour appliquer  https://kubernetes.io/docs/tasks/configure-pod-container/security-context/["contextes de sécurité"^] aux volumes SAN.
+** Le répertoire https://github.com/NetApp/trident/tree/master/trident-installer/sample-input[sample input^] contient des exemples, tels que https://github.com/NetApp/trident/blob/master/trident-installer/sample-input/storage-class-samples/storage-class-basic.yaml.templ[`storage-class-basic.yaml.templ`^] et link:https://github.com/NetApp/trident/blob/master/trident-installer/sample-input/storage-class-samples/storage-class-bronze-default.yaml[`storage-class-bronze-default.yaml`^].
+** Pour plus d'informations, consultez link:../trident-rn.html["Problèmes connus"].
+
+
+
+
+
+
+== Étape 1 : Sélectionnez une version
+
+Les versions de Trident suivent une `YY.MM` convention de nommage basée sur la date, où « YY » sont les deux derniers chiffres de l'année et « MM » le mois. Les versions dot suivent une `YY.MM.X` convention, où « X » est le niveau de correctif. Vous sélectionnerez la version vers laquelle effectuer la mise à niveau en fonction de la version à partir de laquelle vous effectuez la mise à niveau.
+
+* Vous pouvez effectuer une mise à niveau directe vers n'importe quelle version cible située dans un intervalle de quatre versions maximum par rapport à votre version installée. Par exemple, vous pouvez effectuer une mise à niveau directe de 24.06 (ou de toute version dérivée de 24.06) vers 25.06.
+* Si vous effectuez une mise à niveau depuis une version en dehors de la fenêtre de quatre versions, procédez à une mise à niveau en plusieurs étapes. Utilisez les instructions de mise à niveau pour la link:../earlier-versions.html["version antérieure"] version à partir de laquelle vous effectuez la mise à niveau afin de passer à la version la plus récente qui correspond à la fenêtre de quatre versions. Par exemple, si vous utilisez la version 23.07 et souhaitez passer à la version 25.06 :
++
+.. Première mise à niveau de 23.07 à 24.06.
+.. Ensuite, passez de 24.06 à 25.06.
+
+
+
+
+
+NOTE: Lors de la mise à niveau à l'aide de l'opérateur Trident sur OpenShift Container Platform, vous devez passer à Trident 21.01.1 ou une version ultérieure. L'opérateur Trident publié avec la version 21.01.0 contient un problème connu qui a été corrigé dans la version 21.01.1. Pour plus de détails, consultez le https://github.com/NetApp/trident/issues/517["détails du problème sur GitHub"^].
+
+
+
+== Étape 2 : Déterminez la méthode d'installation d'origine
+
+Pour déterminer la version que vous avez utilisée pour installer Trident :
+
+. Utilisez  `kubectl get pods -n trident` pour examiner les pods.
++
+** S'il n'y a pas de module opérateur, Trident a été installé à l'aide de `tridentctl`.
+** S'il existe un pod opérateur, Trident a été installé à l'aide de l'opérateur Trident, soit manuellement, soit à l'aide de Helm.
+
+
+. S'il existe un pod opérateur, utilisez  `kubectl describe torc` pour déterminer si Trident a été installé à l'aide de Helm.
++
+** S'il y a une étiquette Helm, Trident a été installé avec Helm.
+** S'il n'y a pas d'étiquette Helm, Trident a été installé manuellement à l'aide de l'opérateur Trident.
+
+
+
+
+
+
+== Étape 3 : Sélectionnez une méthode de mise à niveau
+
+En règle générale, vous devez effectuer la mise à niveau en utilisant la même méthode que celle employée lors de l'installation initiale, cependant vous pouvez link:../trident-install/kubernetes-deploy.html#moving-between-installation-methods["passer d'une méthode d'installation à une autre"]. Il existe deux options pour mettre à niveau Trident.
+
+* link:upgrade-operator.html["Mise à niveau à l'aide de l'opérateur Trident"]
++
+
+TIP: Nous vous suggérons de vérifier link:upgrade-operator-overview.html["Comprendre le workflow de mise à niveau de l'opérateur"] avant de procéder à la mise à niveau avec l'opérateur.
+
+* 
+

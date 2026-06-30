@@ -1,0 +1,22 @@
+---
+section: trident-reco
+title: Meilleures pratiques et recommandations
+entries:
+- title: Déploiement
+  url: "/trident-reco/deploy-reco.html"
+- title: Configuration du stockage
+  url: "/trident-reco/storage-config-best-practices.html"
+- title: Intégration Trident
+  url: "/trident-reco/integrate-trident.html"
+- title: Protection des données et reprise après sinistre
+  url: "/trident-reco/backup.html"
+- title: Automatisation du basculement des applications avec état avec Trident
+  url: "/trident-reco/force-detach.html"
+- title: Sécurité
+  entries:
+  - title: Recommandations de sécurité
+    url: "/trident-reco/security-reco.html"
+  - title: Linux Unified Key Setup (LUKS)
+    url: "/trident-reco/security-luks.html"
+  - title: Chiffrement Kerberos en vol
+    url: "/trident-reco/kerberos-inflight-encryption.html"

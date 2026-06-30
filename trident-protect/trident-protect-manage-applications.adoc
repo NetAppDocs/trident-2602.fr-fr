@@ -1,0 +1,217 @@
+---
+sidebar: sidebar 
+permalink: trident-protect/trident-protect-manage-applications.html 
+keywords: appvault, data protection, custom resource, namespace, application, cluster 
+summary: 'Vous pouvez informer Trident Protect d"une application que vous souhaitez gérer en créant un CR d"application et un CR AppVault associé.' 
+---
+= Définir une application pour la gestion avec Trident Protect
+:hardbreaks:
+:allow-uri-read: 
+:nofooter: 
+:icons: font
+:linkattrs: 
+:imagesdir: ../media/
+
+
+[role="lead"]
+Vous pouvez définir une application que vous souhaitez gérer avec Trident Protect en créant un CR d'application et un CR AppVault associé.
+
+
+
+== Créer un AppVault CR
+
+Vous devez créer une AppVault CR qui sera utilisée lors des opérations de protection des données sur l'application, et la AppVault CR doit résider sur le cluster où Trident Protect est installé. La AppVault CR est spécifique à votre environnement ; pour des exemples de AppVault CR, consultez link:trident-protect-appvault-custom-resources.html["AppVault ressources personnalisées."]
+
+
+
+== Définir une application
+
+Vous devez définir chaque application que vous souhaitez gérer avec Trident Protect. Vous pouvez définir une application à gérer soit en créant manuellement un CR d'application, soit en utilisant le CLI de Trident Protect.
+
+[role="tabbed-block"]
+====
+.Ajouter une application à l'aide d'un CR
+--
+.Étapes
+. Créez le fichier CR de l'application de destination :
++
+.. Créez le fichier de ressource personnalisée (CR) et nommez-le (par exemple, `maria-app.yaml`).
+.. Configurez les attributs suivants :
++
+*** *metadata.name* : (_Obligatoire_) Le nom de la ressource personnalisée de l’application. Notez le nom que vous choisissez, car d’autres fichiers CR nécessaires aux opérations de protection font référence à cette valeur.
+*** *spec.includedNamespaces* : (_Obligatoire_) Utilisez un espace de noms et un sélecteur d’étiquette pour spécifier les espaces de noms et les ressources utilisés par l’application. L’espace de noms de l’application doit figurer dans cette liste. Le sélecteur d’étiquette est facultatif et peut être utilisé pour filtrer les ressources au sein de chaque espace de noms spécifié.
+*** *spec.includedClusterScopedResources*: (_Facultatif_) Utilisez cet attribut pour spécifier les ressources de portée cluster à inclure dans la définition de l’application. Cet attribut vous permet de sélectionner ces ressources en fonction de leur groupe, version, type et étiquettes.
++
+**** *groupVersionKind*: (_Obligatoire_) Spécifie le groupe d'API, la version et le type de la ressource à portée de cluster.
+**** *labelSelector* : (_Optionnel_) Filtre les ressources à portée du cluster en fonction de leurs étiquettes.
+
+
+*** *metadata.annotations.protect.trident.netapp.io/skip-vm-freeze* : (_Optionnel_) Cette annotation s'applique uniquement aux applications définies à partir de machines virtuelles, telles que dans les environnements KubeVirt, où le gel du système de fichiers intervient avant la création d'instantanés. Indiquez si cette application peut écrire sur le système de fichiers pendant la création d'un instantané. Si la valeur est true, l'application ignore le paramètre global et peut écrire sur le système de fichiers pendant la création d'un instantané. Si la valeur est false, l'application ignore le paramètre global et le système de fichiers est gelé pendant la création d'un instantané. Si cette annotation est spécifiée mais que l'application ne comporte aucune machine virtuelle dans sa définition, elle est ignorée. Si elle n'est pas spécifiée, l'application suit le link:trident-protect-requirements.html#protecting-data-with-kubevirt-vms["paramètre de gel global Trident Protect"].
++
+[NOTE]
+====
+Si vous devez appliquer cette annotation après qu'une application a déjà été créée, vous pouvez utiliser la commande suivante :
+
+[source, console]
+----
+kubectl annotate application -n <application CR namespace> <application CR name> protect.trident.netapp.io/skip-vm-freeze="true"
+----
+====
++
+Exemple YAML :
+
++
+[source, yaml]
+----
+apiVersion: protect.trident.netapp.io/v1
+kind: Application
+metadata:
+  annotations:
+    protect.trident.netapp.io/skip-vm-freeze: "false"
+  name: my-app-name
+  namespace: my-app-namespace
+spec:
+  includedNamespaces:
+    - namespace: namespace-1
+      labelSelector:
+        matchLabels:
+          app: example-app
+    - namespace: namespace-2
+      labelSelector:
+        matchLabels:
+          app: another-example-app
+  includedClusterScopedResources:
+    - groupVersionKind:
+        group: rbac.authorization.k8s.io
+        kind: ClusterRole
+        version: v1
+      labelSelector:
+        matchLabels:
+          mylabel: test
+
+----
+
+
+
+
+. (_Facultatif_) Si nécessaire, vous pouvez ajouter un filtrage des ressources à la même CR pour inclure ou exclure des ressources spécifiques :
++
+** *Exemple de filtre générique :*
++
+*** *resourceFilter.resourceSelectionCriteria* : (Obligatoire pour le filtrage) Utilisez  `Include` ou  `Exclude` pour inclure ou exclure une ressource définie dans resourceMatchers. Ajoutez les paramètres resourceMatchers suivants pour définir les ressources à inclure ou à exclure :
++
+**** *resourceFilter.resourceMatchers* : Un tableau d’objets resourceMatcher. Si vous définissez plusieurs éléments dans ce tableau, ils correspondent selon une opération OU, et les champs à l’intérieur de chaque élément (group, kind, version) correspondent selon une opération ET.
+**** *resourceMatchers[].group*: (_Optionnel_) Groupe de la ressource à filtrer.
+**** *resourceMatchers[].kind*: (_Optionnel_) Type de ressource à filtrer.
+**** *resourceMatchers[].version*: (_Optionnel_) Version de la ressource à filtrer.
+**** *resourceMatchers[].names*: (_Optionnel_) Noms dans le champ Kubernetes metadata.name de la ressource à filtrer.
+**** *resourceMatchers[].namespaces*: (_Optionnel_) Espaces de noms dans le champ metadata.name de Kubernetes de la ressource à filtrer.
+**** *resourceMatchers[].labelSelectors* : (_Optionnel_) Chaîne de sélection d'étiquette dans le champ metadata.name de la ressource Kubernetes tel que défini dans le https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/#label-selectors["Documentation Kubernetes"^]. Par exemple : `"trident.netapp.io/os=linux"`.
++
+
+NOTE: Lorsque  `resourceFilter` et  `labelSelector` sont utilisés,  `resourceFilter` s'exécute en premier, puis  `labelSelector` est appliqué aux ressources résultantes.
+
++
+Par exemple :
+
++
+[source, yaml]
+----
+spec:
+  resourceFilter:
+    resourceSelectionCriteria: "Include"
+    resourceMatchers:
+      - group: my-resource-group-1
+        kind: my-resource-kind-1
+        version: my-resource-version-1
+        names: ["my-resource-names"]
+        namespaces: ["my-resource-namespaces"]
+        labelSelectors: ["trident.netapp.io/os=linux"]
+      - group: my-resource-group-2
+        kind: my-resource-kind-2
+        version: my-resource-version-2
+        names: ["my-resource-names"]
+        namespaces: ["my-resource-namespaces"]
+        labelSelectors: ["trident.netapp.io/os=linux"]
+----
+
+
+
+
+** *Exemple de filtre uniquement PVC :*
++
+Pour définir une application utilisant uniquement des PVC, vous devez également inclure  `PersistentVolume` et  `VolumeSnapshotClass` dans le filtre de ressources. Les opérations de snapshot et de sauvegarde dépendent de  `PersistentVolume` (le volume à portée du cluster lié à chaque PVC) et  `VolumeSnapshotClass` (le pilote de snapshot), et échoueront sans eux. Par exemple :
+
++
+[source, yaml]
+----
+apiVersion: protect.trident.netapp.io/v1
+kind: Application
+metadata:
+  name: my-pvc-app
+  namespace: my-app-namespace
+spec:
+  includedNamespaces:
+  - namespace: my-app-namespace
+  resourceFilter:
+    resourceMatchers:
+    - kind: PersistentVolumeClaim
+      version: v1
+    - kind: PersistentVolume
+      version: v1
+    - kind: VolumeSnapshotClass
+      version: v1
+    resourceSelectionCriteria: Include
+----
+
+
+. Après avoir créé la CR d'application adaptée à votre environnement, appliquez la CR. Par exemple :
++
+[source, console]
+----
+kubectl apply -f maria-app.yaml
+----
+
+
+--
+.Ajoutez une application à l'aide de la CLI
+--
+.Étapes
+. Créez et appliquez la définition d'application en utilisant l'un des exemples suivants, en remplaçant les valeurs entre crochets par les informations de votre environnement. Vous pouvez inclure des espaces de noms et des ressources dans la définition d'application en utilisant des listes séparées par des virgules avec les arguments indiqués dans les exemples.
++
+Vous pouvez éventuellement utiliser une annotation lors de la création d'une application pour spécifier si l'application peut écrire sur le système de fichiers pendant un instantané. Ceci s'applique uniquement aux applications définies à partir de machines virtuelles, comme dans les environnements KubeVirt, où le système de fichiers est gelé avant les instantanés. Si vous définissez l'annotation sur  `true`, l'application ignore le paramètre global et peut écrire sur le système de fichiers pendant un instantané. Si vous la définissez sur  `false`, l'application ignore le paramètre global et le système de fichiers est gelé pendant un instantané. Si vous utilisez l'annotation mais que l'application ne comporte aucune machine virtuelle dans la définition de l'application, l'annotation est ignorée. Si vous n'utilisez pas l'annotation, l'application suit le link:trident-protect-requirements.html#protecting-data-with-kubevirt-vms["paramètre de gel global Trident Protect"].
+
++
+Pour spécifier l'annotation lorsque vous utilisez l'interface de ligne de commande pour créer une application, vous pouvez utiliser le  `--annotation` indicateur.
+
++
+** Créez l'application et utilisez le paramètre global pour le comportement de gel du système de fichiers :
++
+[source, console]
+----
+tridentctl-protect create application <my_new_app_cr_name> --namespaces <namespaces_to_include> --csr <cluster_scoped_resources_to_include> --namespace <my-app-namespace>
+----
+** Créez l'application et configurez le paramètre local de l'application pour le comportement de gel du système de fichiers :
++
+[source, console]
+----
+tridentctl-protect create application <my_new_app_cr_name> --namespaces <namespaces_to_include> --csr <cluster_scoped_resources_to_include> --namespace <my-app-namespace> --annotation protect.trident.netapp.io/skip-vm-freeze=<"true"|"false">
+----
+** Vous pouvez utiliser  `--resource-filter-include` et  `--resource-filter-exclude` pour inclure ou exclure des ressources en fonction de  `resourceSelectionCriteria` tels que le groupe, le type, la version, les étiquettes, les noms et les espaces de noms, comme illustré dans l'exemple suivant :
++
+[source, console]
+----
+tridentctl-protect create application <my_new_app_cr_name> --namespaces <namespaces_to_include> --csr <cluster_scoped_resources_to_include> --namespace <my-app-namespace> --resource-filter-include '[{"Group":"apps","Kind":"Deployment","Version":"v1","Names":["my-deployment"],"Namespaces":["my-namespace"],"LabelSelectors":["app=my-app"]}]'
+----
+** Pour définir une application utilisant uniquement des PVC, vous devez également inclure  `PersistentVolume` et  `VolumeSnapshotClass`` dans le filtre de ressources. Les opérations de snapshot et de sauvegarde dépendent de  `PersistentVolume` (le volume à portée du cluster lié à chaque PVC) et  `VolumeSnapshotClass` (le pilote de snapshot), et échoueront sans eux. Par exemple :
++
+[source, console]
+----
+tridentctl-protect create app my-pvc-app --namespaces <my-app-namespace> --resource-filter-include '[{"Kind":"PersistentVolumeClaim","Version":"v1"},{"Kind":"PersistentVolume","Version":"v1"},{"Kind":"VolumeSnapshotClass","Version":"v1"}]' -n <my-app-namespace>
+----
+
+
+
+
+--
+====

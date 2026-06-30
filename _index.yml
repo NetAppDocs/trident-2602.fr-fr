@@ -1,0 +1,72 @@
+---
+indexpage:
+  title: Documentation Trident 26.02
+  summary: Trident est un outil open source de provisionnement et d'orchestration
+    de stockage maintenu par NetApp. Il permet de créer des volumes de stockage pour
+    les applications conteneurisées gérées par Docker et Kubernetes.
+  keywords: trident, 2602, documentation, release notes, get started, deploy, upgrade,
+    use, data management, protection, demos, tutorials, blogs, community
+  lead: Trident est un outil open source de provisionnement et d'orchestration de
+    stockage maintenu par NetApp. Il permet de créer des volumes de stockage pour
+    les applications conteneurisées gérées par Docker et Kubernetes.
+  tiles:
+  - title: Notes de version
+    links:
+    - title: Quoi de neuf
+      url: trident-rn.html
+    - title: Versions antérieures
+      url: "/earlier-versions.html"
+    - title: Prise en charge de Trident pour les systèmes de stockage ASA r2
+      url: "/trident-asar2-support.html"
+  - title: Commencer
+    links:
+    - title: En savoir plus sur Trident
+      url: "/trident-get-started/intro.html"
+    - title: Exigences
+      url: "/trident-get-started/requirements.html"
+    - title: Démarrage rapide
+      url: "/trident-get-started/quickstart.html"
+  - title: Déployer Trident
+    links:
+    - title: Déployez avec l’opérateur Trident
+      url: "/trident-install/kubernetes-deploy-operator.html"
+    - title: Déployer avec tridentctl
+      url: "/trident-install/kubernetes-deploy-tridentctl.html"
+    - title: Déployer Trident pour Docker
+      url: "/trident-docker/deploy-docker.html"
+  - title: Mettre à niveau Trident
+    links:
+    - title: Mise à niveau avec l'opérateur Trident
+      url: "/trident-managing-k8s/upgrade-operator.html"
+    - title: Mise à niveau avec tridentctl
+      url: "/trident-managing-k8s/upgrade-tridentctl.html"
+  - title: Utilisez Trident
+    links:
+    - title: Préparez le nœud de travail
+      url: "/trident-use/worker-node-prep.html"
+    - title: Configurer les backends
+      url: "/trident-use/backends.html"
+    - title: Gérer les classes de stockage
+      url: "/trident-use/manage-stor-class.html"
+    - title: Effectuer des opérations de volume
+      url: "/trident-use/vol-operations.html"
+  - title: Gestion avancée des données et protection
+    links:
+    - title: Protection avancée des données avec Trident Protect
+      url: "/trident-protect/learn-about-trident-protect.html"
+    - title: Déployer Trident Protect
+      url: "/trident-protect/trident-protect-installation.html"
+    - title: Mettre à niveau Trident Protect
+      url: "/trident-protect/trident-protect-upgrade.html"
+  - title: Démonstrations et tutoriels
+    links:
+    - title: Vidéos Trident
+      url: https://media.netapp.com/video-detail/c5bebae0-aab6-5fed-ae16-df6a3a8b260d/netapp-trident-advanced-data-protection-for-kubernetes-applications
+  - title: Blogs et communauté
+    links:
+    - title: Blogs de Trident et Trident Protect
+      url: "/blog-posts.html"
+    - title: NetApp.io
+      url: https://netapp.io/
+    - title: Discord
+      url: https://discord.gg/NetApp

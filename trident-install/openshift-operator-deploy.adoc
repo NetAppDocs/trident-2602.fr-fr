@@ -1,0 +1,110 @@
+---
+sidebar: sidebar 
+permalink: trident-install/openshift-operator-deploy.html 
+keywords: deploy, trident, methods, operator, openshift, operatorhub 
+summary: 'Si vous utilisez Red Hat OpenShift, vous pouvez installer Trident à l"aide d"un opérateur.' 
+---
+= Installez Trident en utilisant OpenShift OperatorHub
+:hardbreaks:
+:allow-uri-read: 
+:icons: font
+:imagesdir: ../media/
+
+
+[role="lead"]
+Si vous utilisez Red Hat OpenShift, vous pouvez installer NetApp Trident à l'aide de l'opérateur certifié Red Hat. Utilisez cette procédure pour installer Trident depuis la plateforme Red Hat OpenShift Container.
+
+.Avant de commencer
+Avant de commencer l'installation, link:../trident-get-started/requirements.html["Préparez votre environnement pour l'installation de Trident"].
+
+
+
+== Trouvez et installez l’opérateur Trident
+
+.Étapes
+. Accédez à OpenShift OperatorHub et recherchez NetApp Trident.
++
+image::../media/openshift-operator-01.png[Opérateur Trident]
+
+. Cliquez sur *NetApp Trident* pour ouvrir les paramètres d'installation.
+. Sélectionnez les options requises et cliquez sur *Installer* pour ouvrir la configuration de l’opérateur.
++
+image::../media/openshift-operator-02.png[Installation]
+
++
+
+NOTE: Assurez-vous de sélectionner la version la plus récente d'Operator.
+
+. Conservez tous les paramètres tels quels et cliquez sur *Install*.
++
+image::../media/openshift-operator-03.png[Installation]
+
+. Cliquez sur *View Operator* pour afficher les détails de l'Operator.
++
+image::../media/openshift-operator-07.png[Installé]
+
+. Cliquez sur *YAML view* et collez ce qui suit dans le formulaire :
++
+[source, yaml]
+----
+apiVersion: trident.netapp.io/v1
+kind: TridentOrchestrator
+metadata:
+  name: trident
+  namespace: openshift-operators
+spec:
+  IPv6: false
+  debug: false
+  nodePrep:
+  - iscsi
+  imageRegistry: ''
+  k8sTimeout: 180s
+  namespace: trident
+  silenceAutosupport: false
+----
++
+[NOTE]
+====
+L'interface utilisateur propose un exemple par défaut. Vous pouvez le modifier directement au lieu de copier une configuration complète.
+
+====
+
+
+[NOTE]
+====
+Facultatif : Activer la concurrence
+
+Pour activer la concurrence, ajoutez le champ suivant à la spécification :
+
+[source, yaml]
+----
+enableConcurrency: true
+----
+====
+[NOTE]
+====
+* Red Hat Enterprise Linux CoreOS (RHCOS) n'a pas iSCSI activé et configuré.
+* Vous pouvez ajouter le  `nodePrep` paramètre pour configurer et activer les services iSCSI et Multipath sur tous les nœuds de travail OpenShift.
+* À partir de OpenShift 4.19, la version minimale de Trident prise en charge pour cette fonctionnalité est 25.06.1.
+
+
+====
+. Cliquez sur *Créer* ; le Trident Orchestrator sera entièrement installé.
++
+image::../media/openshift-operator-08.png[Installé]
+
+
+
+
+
+== Désinstaller l'opérateur Trident
+
+.Étapes
+. Sélectionnez l’opérateur Trident dans la liste des opérateurs installés.
+. Sélectionnez si vous souhaitez supprimer toutes les instances d'opérande de l'opérateur.
++
+
+WARNING: Si vous ne cochez pas la case *Supprimer toutes les instances d'opérande de cet opérateur*, Trident ne sera pas désinstallé.
+
+. Cliquez sur *Uninstall*.
+

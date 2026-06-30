@@ -1,0 +1,89 @@
+---
+sidebar: sidebar 
+permalink: trident-use/trident-fsx-create-pvc.html 
+keywords: Amazon FSx for NetApp ONTAP, FSx for ONTAP, deploy Trident, integrate Trident, Trident 
+summary: 'En utilisant Trident avec Amazon FSx pour NetApp ONTAP, vous pouvez garantir que vos clusters Kubernetes exécutés dans Amazon Elastic Kubernetes Service (EKS) peuvent provisionner des volumes persistants de blocs et de fichiers pris en charge par ONTAP.' 
+---
+= Configurer un PVC
+:hardbreaks:
+:allow-uri-read: 
+:icons: font
+:imagesdir: ../media/
+
+
+[role="lead"]
+Cette section explique comment créer un PersistentVolumeClaim (PVC) qui utilise la StorageClass Kubernetes configurée pour demander un PV. En cas de succès, vous pourrez ensuite monter le PV sur un pod.
+
+
+
+== Créer le PVC
+
+Un  https://kubernetes.io/docs/concepts/storage/persistent-volumes["_PersistentVolumeClaim_"^] (PVC) est une demande d'accès au PersistentVolume sur le cluster. Le PVC peut être configuré pour demander un espace de stockage d'une certaine taille ou un certain mode d'accès. En utilisant la StorageClass associée, l'administrateur du cluster peut contrôler plus que la taille et le mode d'accès du PersistentVolume—comme les performances ou le niveau de service.
+
+Après avoir créé le backend Trident et le StorageClass, vous pouvez créer un PVC. Après la création du PVC, vous pouvez monter le volume dans un pod.
+
+
+
+=== Exemples de manifestes
+
+Les exemples suivants illustrent les options de configuration de base du PVC.
+
+.PVC avec accès RWX
+Cet exemple montre un PVC de base avec un accès RWX qui est associé à un StorageClass nommé `basic-csi`.
+
+[source, YAML]
+----
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: pvc-storage
+spec:
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: 1Gi
+  storageClassName: ontap-gold
+----
+.Exemple d'utilisation de PVC avec iSCSI
+Cet exemple montre un PVC de base pour iSCSI avec accès RWO associé à un StorageClass nommé `protection-gold`.
+
+[source, YAML]
+----
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: pvc-san
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+  storageClassName: protection-gold
+----
+
+
+=== Créer un PVC
+
+.Étapes
+. Créez le PVC.
++
+[source, console]
+----
+kubectl create -f pvc.yaml
+----
+. Vérifiez l'état du PVC.
++
+[source, console]
+----
+kubectl get pvc
+----
+
+
+[listing]
+----
+NAME        STATUS VOLUME     CAPACITY ACCESS MODES STORAGECLASS AGE
+pvc-storage Bound  pv-name 2Gi      RWO                       5m
+----
+Consultez link:../trident-reference/objects.html["Objets Kubernetes et Trident"] pour plus de détails sur la manière dont les classes de stockage interagissent avec le  `PersistentVolumeClaim` et les paramètres permettant de contrôler la façon dont Trident provisionne les volumes.

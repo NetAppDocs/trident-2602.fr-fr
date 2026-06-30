@@ -1,0 +1,184 @@
+---
+sidebar: sidebar 
+permalink: trident-use/vol-group-snapshots.html 
+keywords: volumes, on-demand volume group snapshots, csi, csi snapshots, create snapshots, backends, kubernetes, create PVCs, PVCs, snapshot, volume snapshot, import snapshot, recover data 
+summary: 'Les snapshots de volumes persistants (PV) Kubernetes permettent de créer des copies à un instant précis des volumes. Vous pouvez créer un snapshot d"un volume créé avec Trident, importer un snapshot créé en dehors de Trident, créer un nouveau volume à partir d"un snapshot existant, et récupérer des données de volume à partir de snapshots.' 
+---
+= Travailler avec les instantanés de groupe de volumes
+:hardbreaks:
+:allow-uri-read: 
+:icons: font
+:imagesdir: ../media/
+
+
+[role="lead"]
+Les instantanés de groupes de volumes Kubernetes des volumes persistants (PV) NetApp Trident offrent la possibilité de créer des instantanés de plusieurs volumes (un groupe d'instantanés de volumes). Cet instantané de groupe de volumes représente des copies de plusieurs volumes prises au même moment.
+
+
+NOTE: VolumeGroupSnapshot est une fonctionnalité bêta de Kubernetes avec des API bêta. Kubernetes 1.32 est la version minimale requise pour VolumeGroupSnapshot.
+
+
+
+== Créer des instantanés de groupes de volumes
+
+La prise en charge des instantanés de groupes de volumes est assurée avec les pilotes de stockage suivants :
+
+* `ontap-san` driver - uniquement pour les protocoles iSCSI et FC, pas pour le protocole NVMe/TCP.
+* `ontap-san-economy` - uniquement pour le protocole iSCSI.
+* `ontap-nas`
+
+
+
+NOTE: La création d'instantanés de groupes de volumes n'est pas prise en charge pour NetApp ASA r2 ou les systèmes de stockage AFX.
+
+.Avant de commencer
+* Assurez-vous que votre version de Kubernetes est K8s 1.32 ou supérieure.
+* Vous devez disposer d'un contrôleur de snapshots externe et de Custom Resource Definitions (CRDs) pour travailler avec les snapshots. C'est la responsabilité de l'orchestrateur Kubernetes (par exemple : Kubeadm, GKE, OpenShift).
++
+Si votre distribution Kubernetes n'inclut pas le contrôleur de snapshots externe et les CRD, reportez-vous à <<Déployer un contrôleur d'instantané de volume>>.
+
++
+
+NOTE: Ne créez pas de contrôleur de snapshots si vous créez des snapshots de groupes de volumes à la demande dans un environnement GKE. GKE utilise un contrôleur de snapshots intégré et masqué.
+
+* Dans le fichier YAML du contrôleur d'instantané, définissez la  `CSIVolumeGroupSnapshot`feature gate sur « true » pour garantir que l'instantané du groupe de volumes est activé.
+* Créez les classes d'instantané de groupe de volumes requises avant de créer un instantané de groupe de volumes.
+* Assurez-vous que tous les PVC/volumes se trouvent sur le même SVM pour pouvoir créer VolumeGroupSnapshot.
+
+
+.Étapes
+* Créez un VolumeGroupSnapshotClass avant de créer un VolumeGroupSnapshot. Pour plus d'informations, consultez link:../trident-reference/objects.html#kubernetes-volumegroupsnapshotclass-objects["VolumeGroupSnapshotClass"].
++
+[source, yaml]
+----
+apiVersion: groupsnapshot.storage.k8s.io/v1beta1
+kind: VolumeGroupSnapshotClass
+metadata:
+  name: csi-group-snap-class
+  annotations:
+    kubernetes.io/description: "Trident group snapshot class"
+driver: csi.trident.netapp.io
+deletionPolicy: Delete
+----
+* Créez des PVC avec les étiquettes requises en utilisant les classes de stockage existantes, ou ajoutez ces étiquettes aux PVC existants.
++
+L'exemple suivant crée le PVC en utilisant  `pvc1-group-snap` comme source de données et l'étiquette  `consistentGroupSnapshot: groupA`. Définissez la clé et la valeur de l'étiquette en fonction de vos besoins.
+
+
+
+[listing]
+----
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: pvc1-group-snap
+  labels:
+    consistentGroupSnapshot: groupA
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 100Mi
+  storageClassName: sc1-1
+----
+* Créez un VolumeGroupSnapshot avec la même étiquette (`consistentGroupSnapshot: groupA`) spécifiée dans le PVC.
++
+Cet exemple crée un instantané de groupe de volumes :
+
+
+
+[listing]
+----
+apiVersion: groupsnapshot.storage.k8s.io/v1beta1
+kind: VolumeGroupSnapshot
+metadata:
+  name: "vgs1"
+  namespace: trident
+spec:
+  volumeGroupSnapshotClassName: csi-group-snap-class
+  source:
+    selector:
+      matchLabels:
+        consistentGroupSnapshot: groupA
+----
+
+
+== Récupérer les données du volume à l'aide d'un instantané de groupe
+
+Vous pouvez restaurer des volumes persistants individuels à l'aide des instantanés individuels qui ont été créés dans le cadre de l'instantané de groupe de volumes. Vous ne pouvez pas restaurer l'instantané de groupe de volumes en tant qu'unité.
+
+Utilisez la commande ONTAP volume snapshot restore pour restaurer un volume à un état enregistré dans un instantané précédent.
+
+[listing]
+----
+cluster1::*> volume snapshot restore -vserver vs0 -volume vol3 -snapshot vol3_snap_archive
+----
+
+NOTE: Lorsque vous restaurez une copie instantanée, la configuration du volume existant est écrasée. Les modifications apportées aux données du volume après la création de la copie instantanée sont perdues.
+
+
+
+== Restauration sur place du volume à partir d'un instantané
+
+Trident permet une restauration rapide et directe des volumes à partir d'un instantané grâce à la  `TridentActionSnapshotRestore` (TASR) CR. Cette CR fonctionne comme une action Kubernetes impérative et n'est pas conservée après la fin de l'opération.
+
+Pour plus d'informations, consultez link:../trident-use/vol-snapshots.html#in-place-volume-restoration-from-a-snapshot["Restauration sur place du volume à partir d'un instantané"].
+
+
+
+== Supprimer un PV avec des snapshots de groupe associés
+
+Lors de la suppression d'un instantané de volume de groupe :
+
+* Vous pouvez supprimer VolumeGroupSnapshots dans leur ensemble, pas les instantanés individuels du groupe.
+* Si des PersistentVolumes sont supprimés alors qu’un instantané existe pour ce PersistentVolume, Trident déplacera ce volume vers un état « en cours de suppression » car l’instantané doit être supprimé avant que le volume puisse être supprimé en toute sécurité.
+* Si un clone a été créé à l'aide d'un instantané groupé et que le groupe doit ensuite être supprimé, une opération de division sur le clone commencera et le groupe ne pourra pas être supprimé tant que la division n'est pas terminée.
+
+
+
+
+== Déployer un contrôleur d'instantané de volume
+
+Si votre distribution Kubernetes n'inclut pas le snapshot controller et les CRDs, vous pouvez les déployer comme suit.
+
+.Étapes
+. Créer des CRD d'instantané de volume.
++
+[listing]
+----
+cat snapshot-setup.sh
+----
++
+[source, sh]
+----
+#!/bin/bash
+# Create volume snapshot CRDs
+kubectl apply -f https://raw.githubusercontent.com/kubernetes-csi/external-snapshotter/release-8.2/client/config/crd/groupsnapshot.storage.k8s.io_volumegroupsnapshotclasses.yaml
+kubectl apply -f https://raw.githubusercontent.com/kubernetes-csi/external-snapshotter/release-8.2/client/config/crd/groupsnapshot.storage.k8s.io_volumegroupsnapshotcontents.yaml
+kubectl apply -f https://raw.githubusercontent.com/kubernetes-csi/external-snapshotter/release-8.2/client/config/crd/groupsnapshot.storage.k8s.io_volumegroupsnapshots.yaml
+----
+. Créez le contrôleur de snapshot.
++
+[source, console]
+----
+kubectl apply -f https://raw.githubusercontent.com/kubernetes-csi/external-snapshotter/release-8.2/deploy/kubernetes/snapshot-controller/rbac-snapshot-controller.yaml
+----
++
+[source, console]
+----
+kubectl apply -f https://raw.githubusercontent.com/kubernetes-csi/external-snapshotter/release-8.2/deploy/kubernetes/snapshot-controller/setup-snapshot-controller.yaml
+----
++
+
+NOTE: Si nécessaire, ouvrez `deploy/kubernetes/snapshot-controller/rbac-snapshot-controller.yaml` et mettez à jour `namespace` pour votre espace de noms.
+
+
+
+
+
+== Liens associés
+
+* link:../trident-reference/objects.html#kubernetes-volumegroupsnapshotclass-objects["VolumeGroupSnapshotClass"]
+* link:../trident-concepts/snapshots.html["Instantanés de volume"]
+

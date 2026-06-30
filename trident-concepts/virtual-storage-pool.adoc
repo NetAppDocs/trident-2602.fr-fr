@@ -1,0 +1,68 @@
+---
+sidebar: sidebar 
+permalink: trident-concepts/virtual-storage-pool.html 
+keywords: virtual pools, Trident, backends 
+summary: 'Les pools virtuels offrent une couche d"abstraction entre les systèmes de stockage backends de Trident et les StorageClasses de Kubernetes. Ils permettent à un administrateur de définir des aspects tels que l"emplacement, les performances et la protection pour chaque backend de manière commune et indépendante du backend, sans obliger une StorageClass à spécifier quel backend physique, pool de backend ou type de backend utiliser pour répondre aux critères souhaités.' 
+---
+= Pools virtuels
+:hardbreaks:
+:allow-uri-read: 
+:icons: font
+:imagesdir: ../media/
+
+
+[role="lead"]
+Les pools virtuels offrent une couche d'abstraction entre Trident storage backends et Kubernetes `StorageClasses`. Ils permettent à un administrateur de définir des aspects, tels que l'emplacement, les performances et la protection pour chaque backend de manière commune et indépendante du backend, sans avoir à `StorageClass` spécifier quel backend physique, pool de backend ou type de backend utiliser pour répondre aux critères souhaités.
+
+
+
+== En savoir plus sur les pools virtuels
+
+L'administrateur de stockage peut définir des pools virtuels sur n'importe quel backend Trident dans un fichier de définition JSON ou YAML.
+
+image::virtual_storage_pools.png[Montre le schéma conceptuel des pools virtuels.]
+
+Tout aspect spécifié en dehors de la liste des pools virtuels est global au backend et s'appliquera à tous les pools virtuels, tandis que chaque pool virtuel peut spécifier un ou plusieurs aspects individuellement (remplaçant tout aspect global au backend).
+
+[NOTE]
+====
+* Lors de la définition des pools virtuels, ne tentez pas de réorganiser l'ordre des pools virtuels existants dans une définition de backend.
+* Nous déconseillons de modifier les attributs d'un pool virtuel existant. Vous devez définir un nouveau pool virtuel pour effectuer des modifications.
+
+
+====
+La plupart des aspects sont spécifiés en termes propres au backend. Il est essentiel de noter que les valeurs des aspects ne sont pas exposées en dehors du pilote du backend et ne sont pas disponibles pour la mise en correspondance dans `StorageClasses`. À la place, l'administrateur définit une ou plusieurs étiquettes pour chaque pool virtuel. Chaque étiquette est une paire clé:valeur, et les étiquettes peuvent être communes à différents backends uniques. Comme les aspects, les étiquettes peuvent être spécifiées par pool ou globalement pour le backend. Contrairement aux aspects, qui ont des noms et des valeurs prédéfinis, l'administrateur a toute latitude pour définir les clés et les valeurs des étiquettes selon les besoins. Pour plus de simplicité, les administrateurs de stockage peuvent définir des étiquettes par pool virtuel et regrouper les volumes par étiquette.
+
+Les étiquettes de pool virtuel peuvent être définies à l'aide de ces caractères :
+
+* lettres majuscules `A-Z`
+* lettres minuscules `a-z`
+* Nombres `0-9`
+* soulignés `_`
+* traits d'union  `-`
+
+
+A `StorageClass` identifie le pool virtuel à utiliser en référençant les étiquettes d'un paramètre de sélecteur. Les sélecteurs de pool virtuel prennent en charge les opérateurs suivants :
+
+[cols="14%,34%,52%"]
+|===
+| Opérateur | Exemple | La valeur de l'étiquette d'un pool doit : 
+
+
+| `=` | performance=premium | Correspondance 
+
+
+| `!=` | performance!=extrême | Ne correspond pas 
+
+
+| `in` | emplacement dans (est, ouest) | Appartenir à l'ensemble des valeurs 
+
+
+| `notin` | notation de performance (argent, bronze) | Ne pas faire partie de l'ensemble des valeurs 
+
+
+| `<key>` | protection | Exister avec n'importe quelle valeur 
+
+
+| `!<key>` | !protection | N'existe pas 
+|===

@@ -1,0 +1,30 @@
+---
+sidebar: sidebar 
+permalink: trident-concepts/vol-access-groups.html 
+keywords: volume access groups, element, solidfire, chap, Trident, hci, netapp hci, storage system, access volumes, 
+summary: 'En savoir plus sur la façon dont Trident utilise les groupes d"accès aux volumes.' 
+---
+= Groupes d'accès au volume
+:hardbreaks:
+:allow-uri-read: 
+:icons: font
+:imagesdir: ../media/
+
+
+[role="lead"]
+Apprenez-en davantage sur la façon dont Trident utilise https://docs.netapp.com/us-en/element-software/concepts/concept_solidfire_concepts_volume_access_groups.html["groupes d'accès au volume"^].
+
+
+NOTE: Ignorez cette section si vous utilisez CHAP, qui est recommandé pour simplifier la gestion et éviter la limite de mise à l'échelle décrite ci-dessous. De plus, si vous utilisez Trident en mode CSI, vous pouvez ignorer cette section. Trident utilise CHAP lorsqu'il est installé en tant que provisionneur CSI amélioré.
+
+
+
+== En savoir plus sur les groupes d'accès au volume
+
+Trident peut utiliser des groupes d'accès aux volumes pour contrôler l'accès aux volumes qu'il provisionne. Si CHAP est désactivé, il s'attend à trouver un groupe d'accès appelé `trident` sauf si vous spécifiez un ou plusieurs ID de groupe d'accès dans la configuration.
+
+Bien que Trident associe les nouveaux volumes aux groupes d'accès configurés, il ne crée ni ne gère les groupes d'accès eux-mêmes. Les groupes d'accès doivent exister avant que le backend de stockage ne soit ajouté à Trident, et ils doivent contenir les IQN iSCSI de chaque nœud du cluster Kubernetes susceptible de monter les volumes provisionnés par ce backend. Dans la plupart des installations, cela inclut chaque nœud de travail du cluster.
+
+Pour les clusters Kubernetes de plus de 64 nœuds, vous devez utiliser plusieurs groupes d'accès. Chaque groupe d'accès peut contenir jusqu'à 64 IQN, et chaque volume peut appartenir à quatre groupes d'accès. Avec les quatre groupes d'accès configurés au maximum, tout nœud d'un cluster pouvant atteindre 256 nœuds pourra accéder à n'importe quel volume. Pour connaître les dernières limites concernant les groupes d'accès aux volumes, consultez  https://docs.netapp.com/us-en/element-software/concepts/concept_solidfire_concepts_volume_access_groups.html["ici"^].
+
+Si vous modifiez la configuration d'une configuration utilisant le groupe d'accès par défaut  `trident` à une configuration utilisant également d'autres groupes, incluez l'ID du groupe d'accès  `trident` dans la liste.

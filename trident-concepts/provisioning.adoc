@@ -1,0 +1,27 @@
+---
+sidebar: sidebar 
+permalink: trident-concepts/provisioning.html 
+keywords: provisioning, Trident 
+summary: 'Le provisionnement dans Trident comporte deux phases principales. La première phase associe une classe de stockage à l"ensemble des pools de stockage backend appropriés et se produit comme une préparation nécessaire avant le provisionnement. La seconde phase inclut la création du volume elle-même et nécessite de choisir un pool de stockage parmi ceux associés à la classe de stockage du volume en attente.' 
+---
+= Provisionnement
+:hardbreaks:
+:allow-uri-read: 
+:icons: font
+:imagesdir: ../media/
+
+
+[role="lead"]
+Le provisionnement dans Trident comporte deux phases principales. La première phase associe une classe de stockage à l'ensemble des pools de stockage backend appropriés et se produit comme une préparation nécessaire avant le provisionnement. La seconde phase inclut la création du volume elle-même et nécessite de choisir un pool de stockage parmi ceux associés à la classe de stockage du volume en attente.
+
+
+
+== Association de classe de stockage
+
+L'association de pools de stockage backend à une classe de stockage dépend à la fois des attributs requis par la classe de stockage et de ses  `storagePools`, `additionalStoragePools`, et  `excludeStoragePools` listes. Lorsque vous créez une classe de stockage, Trident compare les attributs et les pools proposés par chacun de ses backends à ceux demandés par la classe de stockage. Si les attributs et le nom d'un pool de stockage correspondent à tous les attributs et noms de pools demandés, Trident ajoute ce pool de stockage à l'ensemble des pools de stockage adaptés à cette classe de stockage. De plus, Trident ajoute à cet ensemble tous les pools de stockage listés dans la  `additionalStoragePools` liste, même si leurs attributs ne remplissent pas tous ou aucun des attributs demandés par la classe de stockage. Vous devez utiliser la  `excludeStoragePools` liste pour exclure et retirer des pools de stockage de l'utilisation pour une classe de stockage. Trident effectue un processus similaire chaque fois que vous ajoutez un nouveau backend, en vérifiant si ses pools de stockage satisfont ceux des classes de stockage existantes et en retirant ceux qui ont été marqués comme exclus.
+
+
+
+== Création de volume
+
+Trident utilise ensuite les associations entre les classes de stockage et les pools de stockage pour déterminer où provisionner les volumes. Lorsque vous créez un volume, Trident récupère d'abord l'ensemble des pools de stockage pour la classe de stockage de ce volume et, si vous spécifiez un protocole pour le volume, Trident supprime les pools de stockage qui ne peuvent pas fournir le protocole demandé (par exemple, un backend NetApp HCI/SolidFire ne peut pas fournir un volume basé sur des fichiers, tandis qu'un backend ONTAP NAS ne peut pas fournir un volume basé sur des blocs). Trident randomise l'ordre de cet ensemble résultant, afin de faciliter une répartition homogène des volumes, puis le parcourt en tentant de provisionner le volume sur chaque pool de stockage à son tour. S'il réussit sur l'un d'eux, il retourne un succès, en enregistrant tous les échecs rencontrés au cours du processus. Trident signale un échec *uniquement si* le provisionnement échoue sur *tous* les pools de stockage disponibles pour la classe de stockage et le protocole demandés.

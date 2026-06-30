@@ -1,0 +1,465 @@
+---
+sidebar: sidebar 
+permalink: trident-use/vol-expansion.html 
+keywords: volumes, on-demand volume snapshots, expand volumes, iscsci volumes, nfs volumes, expand, expansion 
+summary: 'Trident permet aux utilisateurs de Kubernetes d"étendre leurs volumes après leur création. Consultez les informations relatives aux configurations requises pour étendre les volumes iSCSI, FC et NFS.' 
+---
+= Étendre les volumes
+:hardbreaks:
+:allow-uri-read: 
+:icons: font
+:imagesdir: ../media/
+
+
+[role="lead"]
+Trident permet aux utilisateurs de Kubernetes d'étendre leurs volumes après leur création. Consultez les informations relatives aux configurations requises pour étendre les volumes iSCSI, NFS, SMB, NVMe/TCP et FC.
+
+
+
+== Étendre un volume iSCSI
+
+Vous pouvez étendre un volume persistant iSCSI (PV) à l'aide du provisionneur CSI.
+
+
+NOTE: L'extension de volume iSCSI est prise en charge par les  `ontap-san`, `ontap-san-economy`, `solidfire-san` pilotes et nécessite Kubernetes 1.16 et versions ultérieures.
+
+
+
+=== Étape 1 : Configurer le StorageClass pour prendre en charge l’extension de volume
+
+Modifiez la définition StorageClass pour définir le champ  `allowVolumeExpansion` sur  `true`.
+
+[listing]
+----
+cat storageclass-ontapsan.yaml
+----
+[source, yaml]
+----
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: ontap-san
+provisioner: csi.trident.netapp.io
+parameters:
+  backendType: "ontap-san"
+allowVolumeExpansion: True
+----
+Pour un StorageClass déjà existant, modifiez-le pour inclure le  `allowVolumeExpansion` paramètre.
+
+
+
+=== Étape 2 : Créez un PVC avec le StorageClass que vous avez créé
+
+Modifiez la définition du PVC et mettez à jour le  `spec.resources.requests.storage` pour refléter la nouvelle taille souhaitée, qui doit être supérieure à la taille d'origine.
+
+[listing]
+----
+cat pvc-ontapsan.yaml
+----
+[source, yaml]
+----
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: san-pvc
+spec:
+  accessModes:
+  - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+  storageClassName: ontap-san
+----
+Trident crée un volume persistant (PV) et l'associe à cette Persistent Volume Claim (PVC).
+
+[listing]
+----
+kubectl get pvc
+NAME      STATUS   VOLUME                                     CAPACITY   ACCESS MODES   STORAGECLASS   AGE
+san-pvc   Bound    pvc-8a814d62-bd58-4253-b0d1-82f2885db671   1Gi        RWO            ontap-san      8s
+
+kubectl get pv
+NAME                                       CAPACITY   ACCESS MODES   RECLAIM POLICY   STATUS   CLAIM             STORAGECLASS   REASON   AGE
+pvc-8a814d62-bd58-4253-b0d1-82f2885db671   1Gi        RWO            Delete           Bound    default/san-pvc   ontap-san               10s
+----
+
+
+=== Étape 3 : Définir un pod auquel se fixe le PVC
+
+Fixez le PV à un pod pour qu'il soit redimensionné. Il existe deux scénarios lors du redimensionnement d’un PV iSCSI :
+
+* Si le PV est attaché à un pod, Trident étend le volume sur le backend de stockage, rescanne le périphérique et redimensionne le système de fichiers.
+* Lors d'une tentative de redimensionnement d'un PV non attaché, Trident étend le volume sur le stockage backend. Après que le PVC est lié à un pod, Trident rescanne le périphérique et redimensionne le système de fichiers. Kubernetes met ensuite à jour la taille du PVC après que l'opération d'extension a été effectuée avec succès.
+
+
+Dans cet exemple, un pod est créé qui utilise le `san-pvc`.
+
+[listing]
+----
+ kubectl get pod
+NAME         READY   STATUS    RESTARTS   AGE
+ubuntu-pod   1/1     Running   0          65s
+
+ kubectl describe pvc san-pvc
+Name:          san-pvc
+Namespace:     default
+StorageClass:  ontap-san
+Status:        Bound
+Volume:        pvc-8a814d62-bd58-4253-b0d1-82f2885db671
+Labels:        <none>
+Annotations:   pv.kubernetes.io/bind-completed: yes
+               pv.kubernetes.io/bound-by-controller: yes
+               volume.beta.kubernetes.io/storage-provisioner: csi.trident.netapp.io
+Finalizers:    [kubernetes.io/pvc-protection]
+Capacity:      1Gi
+Access Modes:  RWO
+VolumeMode:    Filesystem
+Mounted By:    ubuntu-pod
+----
+
+
+=== Étape 4 : Développer le PV
+
+Pour redimensionner le PV créé de 1Gi à 2Gi, modifiez la définition du PVC et mettez à jour le  `spec.resources.requests.storage` à 2Gi.
+
+[listing]
+----
+kubectl edit pvc san-pvc
+----
+[source, yaml]
+----
+# Please edit the object below. Lines beginning with a '#' will be ignored,
+# and an empty file will abort the edit. If an error occurs while saving this file will be
+# reopened with the relevant failures.
+#
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  annotations:
+    pv.kubernetes.io/bind-completed: "yes"
+    pv.kubernetes.io/bound-by-controller: "yes"
+    volume.beta.kubernetes.io/storage-provisioner: csi.trident.netapp.io
+  creationTimestamp: "2019-10-10T17:32:29Z"
+  finalizers:
+  - kubernetes.io/pvc-protection
+  name: san-pvc
+  namespace: default
+  resourceVersion: "16609"
+  selfLink: /api/v1/namespaces/default/persistentvolumeclaims/san-pvc
+  uid: 8a814d62-bd58-4253-b0d1-82f2885db671
+spec:
+  accessModes:
+  - ReadWriteOnce
+  resources:
+    requests:
+      storage: 2Gi
+ # ...
+----
+
+
+=== Étape 5 : Valider l’expansion
+
+Vous pouvez vérifier que l'extension a fonctionné correctement en contrôlant la taille du PVC, du PV et du volume Trident :
+
+[listing]
+----
+kubectl get pvc san-pvc
+NAME      STATUS   VOLUME                                     CAPACITY   ACCESS MODES   STORAGECLASS   AGE
+san-pvc   Bound    pvc-8a814d62-bd58-4253-b0d1-82f2885db671   2Gi        RWO            ontap-san      11m
+kubectl get pv
+NAME                                       CAPACITY   ACCESS MODES   RECLAIM POLICY   STATUS   CLAIM             STORAGECLASS   REASON   AGE
+pvc-8a814d62-bd58-4253-b0d1-82f2885db671   2Gi        RWO            Delete           Bound    default/san-pvc   ontap-san               12m
+tridentctl get volumes -n trident
++------------------------------------------+---------+---------------+----------+--------------------------------------+--------+---------+
+|                   NAME                   |  SIZE   | STORAGE CLASS | PROTOCOL |             BACKEND UUID             | STATE  | MANAGED |
++------------------------------------------+---------+---------------+----------+--------------------------------------+--------+---------+
+| pvc-8a814d62-bd58-4253-b0d1-82f2885db671 | 2.0 GiB | ontap-san     | block    | a9b7bfff-0505-4e31-b6c5-59f492e02d33 | online | true    |
++------------------------------------------+---------+---------------+----------+--------------------------------------+--------+---------+
+----
+
+
+== Étendre un volume FC
+
+Vous pouvez étendre un volume persistant (PV) FC en utilisant le provisionneur CSI.
+
+
+NOTE: L'extension de volume FC est prise en charge par le  `ontap-san` driver et nécessite Kubernetes 1.16 et versions ultérieures.
+
+
+
+=== Étape 1 : Configurer le StorageClass pour prendre en charge l’extension de volume
+
+Modifiez la définition StorageClass pour définir le champ  `allowVolumeExpansion` sur  `true`.
+
+[listing]
+----
+cat storageclass-ontapsan.yaml
+----
+[source, yaml]
+----
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: ontap-san
+provisioner: csi.trident.netapp.io
+parameters:
+  backendType: "ontap-san"
+allowVolumeExpansion: True
+----
+Pour un StorageClass déjà existant, modifiez-le pour inclure le  `allowVolumeExpansion` paramètre.
+
+
+
+=== Étape 2 : Créez un PVC avec le StorageClass que vous avez créé
+
+Modifiez la définition du PVC et mettez à jour le  `spec.resources.requests.storage` pour refléter la nouvelle taille souhaitée, qui doit être supérieure à la taille d'origine.
+
+[listing]
+----
+cat pvc-ontapsan.yaml
+----
+[source, yaml]
+----
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: san-pvc
+spec:
+  accessModes:
+  - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+  storageClassName: ontap-san
+----
+Trident crée un volume persistant (PV) et l'associe à cette Persistent Volume Claim (PVC).
+
+[listing]
+----
+kubectl get pvc
+NAME      STATUS   VOLUME                                     CAPACITY   ACCESS MODES   STORAGECLASS   AGE
+san-pvc   Bound    pvc-8a814d62-bd58-4253-b0d1-82f2885db671   1Gi        RWO            ontap-san      8s
+
+kubectl get pv
+NAME                                       CAPACITY   ACCESS MODES   RECLAIM POLICY   STATUS   CLAIM             STORAGECLASS   REASON   AGE
+pvc-8a814d62-bd58-4253-b0d1-82f2885db671   1Gi        RWO            Delete           Bound    default/san-pvc   ontap-san               10s
+----
+
+
+=== Étape 3 : Définir un pod auquel se fixe le PVC
+
+Fixez le PV à un pod pour qu'il soit redimensionné. Il existe deux scénarios lors du redimensionnement d'un PV FC :
+
+* Si le PV est attaché à un pod, Trident étend le volume sur le backend de stockage, rescanne le périphérique et redimensionne le système de fichiers.
+* Lors d'une tentative de redimensionnement d'un PV non attaché, Trident étend le volume sur le stockage backend. Après que le PVC est lié à un pod, Trident rescanne le périphérique et redimensionne le système de fichiers. Kubernetes met ensuite à jour la taille du PVC après que l'opération d'extension a été effectuée avec succès.
+
+
+Dans cet exemple, un pod est créé qui utilise le `san-pvc`.
+
+[listing]
+----
+ kubectl get pod
+NAME         READY   STATUS    RESTARTS   AGE
+ubuntu-pod   1/1     Running   0          65s
+
+ kubectl describe pvc san-pvc
+Name:          san-pvc
+Namespace:     default
+StorageClass:  ontap-san
+Status:        Bound
+Volume:        pvc-8a814d62-bd58-4253-b0d1-82f2885db671
+Labels:        <none>
+Annotations:   pv.kubernetes.io/bind-completed: yes
+               pv.kubernetes.io/bound-by-controller: yes
+               volume.beta.kubernetes.io/storage-provisioner: csi.trident.netapp.io
+Finalizers:    [kubernetes.io/pvc-protection]
+Capacity:      1Gi
+Access Modes:  RWO
+VolumeMode:    Filesystem
+Mounted By:    ubuntu-pod
+----
+
+
+=== Étape 4 : Développer le PV
+
+Pour redimensionner le PV créé de 1Gi à 2Gi, modifiez la définition du PVC et mettez à jour le  `spec.resources.requests.storage` à 2Gi.
+
+[listing]
+----
+kubectl edit pvc san-pvc
+----
+[source, yaml]
+----
+# Please edit the object below. Lines beginning with a '#' will be ignored,
+# and an empty file will abort the edit. If an error occurs while saving this file will be
+# reopened with the relevant failures.
+#
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  annotations:
+    pv.kubernetes.io/bind-completed: "yes"
+    pv.kubernetes.io/bound-by-controller: "yes"
+    volume.beta.kubernetes.io/storage-provisioner: csi.trident.netapp.io
+  creationTimestamp: "2019-10-10T17:32:29Z"
+  finalizers:
+  - kubernetes.io/pvc-protection
+  name: san-pvc
+  namespace: default
+  resourceVersion: "16609"
+  selfLink: /api/v1/namespaces/default/persistentvolumeclaims/san-pvc
+  uid: 8a814d62-bd58-4253-b0d1-82f2885db671
+spec:
+  accessModes:
+  - ReadWriteOnce
+  resources:
+    requests:
+      storage: 2Gi
+ # ...
+----
+
+
+=== Étape 5 : Valider l’expansion
+
+Vous pouvez vérifier que l'extension a fonctionné correctement en contrôlant la taille du PVC, du PV et du volume Trident :
+
+[listing]
+----
+kubectl get pvc san-pvc
+NAME      STATUS   VOLUME                                     CAPACITY   ACCESS MODES   STORAGECLASS   AGE
+san-pvc   Bound    pvc-8a814d62-bd58-4253-b0d1-82f2885db671   2Gi        RWO            ontap-san      11m
+kubectl get pv
+NAME                                       CAPACITY   ACCESS MODES   RECLAIM POLICY   STATUS   CLAIM             STORAGECLASS   REASON   AGE
+pvc-8a814d62-bd58-4253-b0d1-82f2885db671   2Gi        RWO            Delete           Bound    default/san-pvc   ontap-san               12m
+tridentctl get volumes -n trident
++------------------------------------------+---------+---------------+----------+--------------------------------------+--------+---------+
+|                   NAME                   |  SIZE   | STORAGE CLASS | PROTOCOL |             BACKEND UUID             | STATE  | MANAGED |
++------------------------------------------+---------+---------------+----------+--------------------------------------+--------+---------+
+| pvc-8a814d62-bd58-4253-b0d1-82f2885db671 | 2.0 GiB | ontap-san     | block    | a9b7bfff-0505-4e31-b6c5-59f492e02d33 | online | true    |
++------------------------------------------+---------+---------------+----------+--------------------------------------+--------+---------+
+----
+
+
+== Étendre un volume NFS
+
+Trident prend en charge l’extension de volume pour les PV NFS provisionnés sur `ontap-nas`, `ontap-nas-economy`, `ontap-nas-flexgroup` et `azure-netapp-files` backends.
+
+
+
+=== Étape 1 : Configurer le StorageClass pour prendre en charge l’extension de volume
+
+Pour redimensionner un volume persistant NFS, l'administrateur doit d'abord configurer la classe de stockage pour autoriser l'extension de volume en définissant le  `allowVolumeExpansion` champ sur  `true` :
+
+[listing]
+----
+cat storageclass-ontapnas.yaml
+----
+[source, yaml]
+----
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: ontapnas
+provisioner: csi.trident.netapp.io
+parameters:
+  backendType: ontap-nas
+allowVolumeExpansion: true
+----
+Si vous avez déjà créé une classe de stockage sans cette option, vous pouvez simplement modifier la classe de stockage existante en utilisant  `kubectl edit storageclass` pour autoriser l’extension de volume.
+
+
+
+=== Étape 2 : Créez un PVC avec le StorageClass que vous avez créé
+
+[listing]
+----
+cat pvc-ontapnas.yaml
+----
+[source, yaml]
+----
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: ontapnas20mb
+spec:
+  accessModes:
+  - ReadWriteOnce
+  resources:
+    requests:
+      storage: 20Mi
+  storageClassName: ontapnas
+----
+Trident devrait créer un PV NFS de 20 MiB pour ce PVC:
+
+[listing]
+----
+kubectl get pvc
+NAME           STATUS   VOLUME                                     CAPACITY     ACCESS MODES   STORAGECLASS    AGE
+ontapnas20mb   Bound    pvc-08f3d561-b199-11e9-8d9f-5254004dfdb7   20Mi         RWO            ontapnas        9s
+
+kubectl get pv pvc-08f3d561-b199-11e9-8d9f-5254004dfdb7
+NAME                                       CAPACITY   ACCESS MODES   RECLAIM POLICY   STATUS   CLAIM                  STORAGECLASS    REASON   AGE
+pvc-08f3d561-b199-11e9-8d9f-5254004dfdb7   20Mi       RWO            Delete           Bound    default/ontapnas20mb   ontapnas                 2m42s
+----
+
+
+=== Étape 3 : Développer le PV
+
+Pour redimensionner le PV nouvellement créé de 20 Mio à 1 Gio, modifiez le PVC et définissez  `spec.resources.requests.storage` sur 1 Gio :
+
+[listing]
+----
+kubectl edit pvc ontapnas20mb
+----
+[source, yaml]
+----
+# Please edit the object below. Lines beginning with a '#' will be ignored,
+# and an empty file will abort the edit. If an error occurs while saving this file will be
+# reopened with the relevant failures.
+#
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  annotations:
+    pv.kubernetes.io/bind-completed: "yes"
+    pv.kubernetes.io/bound-by-controller: "yes"
+    volume.beta.kubernetes.io/storage-provisioner: csi.trident.netapp.io
+  creationTimestamp: 2018-08-21T18:26:44Z
+  finalizers:
+  - kubernetes.io/pvc-protection
+  name: ontapnas20mb
+  namespace: default
+  resourceVersion: "1958015"
+  selfLink: /api/v1/namespaces/default/persistentvolumeclaims/ontapnas20mb
+  uid: c1bd7fa5-a56f-11e8-b8d7-fa163e59eaab
+spec:
+  accessModes:
+  - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+# ...
+----
+
+
+=== Étape 4 : Valider l’expansion
+
+Vous pouvez vérifier que le redimensionnement a fonctionné correctement en contrôlant la taille du PVC, du PV et du volume Trident :
+
+[listing]
+----
+kubectl get pvc ontapnas20mb
+NAME           STATUS   VOLUME                                     CAPACITY   ACCESS MODES   STORAGECLASS    AGE
+ontapnas20mb   Bound    pvc-08f3d561-b199-11e9-8d9f-5254004dfdb7   1Gi        RWO            ontapnas        4m44s
+
+kubectl get pv pvc-08f3d561-b199-11e9-8d9f-5254004dfdb7
+NAME                                       CAPACITY   ACCESS MODES   RECLAIM POLICY   STATUS   CLAIM                  STORAGECLASS    REASON   AGE
+pvc-08f3d561-b199-11e9-8d9f-5254004dfdb7   1Gi        RWO            Delete           Bound    default/ontapnas20mb   ontapnas                 5m35s
+
+tridentctl get volume pvc-08f3d561-b199-11e9-8d9f-5254004dfdb7 -n trident
++------------------------------------------+---------+---------------+----------+--------------------------------------+--------+---------+
+|                   NAME                   |  SIZE   | STORAGE CLASS | PROTOCOL |             BACKEND UUID             | STATE  | MANAGED |
++------------------------------------------+---------+---------------+----------+--------------------------------------+--------+---------+
+| pvc-08f3d561-b199-11e9-8d9f-5254004dfdb7 | 1.0 GiB | ontapnas      | file     | c5a6f6a4-b052-423b-80d4-8fb491a14a22 | online | true    |
++------------------------------------------+---------+---------------+----------+--------------------------------------+--------+---------+
+----

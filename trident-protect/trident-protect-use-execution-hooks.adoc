@@ -1,0 +1,376 @@
+---
+sidebar: sidebar 
+permalink: trident-protect/trident-protect-use-execution-hooks.html 
+keywords: trident, protect, execution hooks 
+summary: 'Vous pouvez créer un hook d"exécution personnalisé pour une application à l"aide de Trident Protect. Vous devez disposer des autorisations Owner, Admin ou Member pour créer des hooks d"exécution.' 
+---
+= Gérer les hooks d'exécution de Trident Protect
+:hardbreaks:
+:allow-uri-read: 
+:nofooter: 
+:icons: font
+:linkattrs: 
+:imagesdir: ../media/
+
+
+[role="lead"]
+Un point d'exécution est une action personnalisée que vous pouvez configurer pour qu'elle s'exécute conjointement avec une opération de protection des données d'une application gérée. Par exemple, si vous avez une application de base de données, vous pouvez utiliser un point d'exécution pour suspendre toutes les transactions de la base de données avant un instantané, puis reprendre les transactions après la fin de l'instantané. Cela garantit des instantanés cohérents au niveau des applications.
+
+
+
+== Types de hooks d'exécution
+
+Trident Protect prend en charge les types de hooks d'exécution suivants, en fonction du moment où ils peuvent être exécutés :
+
+* Pré-instantané
+* Après l’instantané
+* Pré-sauvegarde
+* Post-sauvegarde
+* Après restauration
+* Après le basculement
+
+
+
+
+=== Ordre d'exécution
+
+Lorsqu'une opération de protection des données est exécutée, les événements du hook d'exécution se produisent dans l'ordre suivant :
+
+. Les hooks d'exécution personnalisés applicables avant l'opération sont exécutés sur les conteneurs appropriés. Vous pouvez créer et exécuter autant de hooks d'exécution personnalisés que nécessaire, mais l'ordre d'exécution de ces hooks avant l'opération n'est ni garanti ni configurable.
+. Des blocages du système de fichiers peuvent survenir, le cas échéant. link:trident-protect-requirements.html#protecting-data-with-kubevirt-vms["En savoir plus sur la configuration du gel du système de fichiers avec Trident Protect"].
+. L'opération de protection des données est effectuée.
+. Les systèmes de fichiers gelés sont dégelés, le cas échéant.
+. Les hooks d'exécution post-opération personnalisés applicables sont exécutés sur les conteneurs appropriés. Vous pouvez créer et exécuter autant de hooks post-opération personnalisés que nécessaire, mais l'ordre d'exécution de ces hooks après l'opération n'est ni garanti ni configurable.
+
+
+Si vous créez plusieurs hooks d'exécution du même type (par exemple, pre-snapshot), l'ordre d'exécution de ces hooks n'est pas garanti. Cependant, l'ordre d'exécution des hooks de types différents est garanti. Par exemple, voici l'ordre d'exécution d'une configuration qui comporte tous les différents types de hooks :
+
+. Hooks de pré-snapshot exécutés
+. Hooks post-snapshot exécutés
+. Hooks de pré-sauvegarde exécutés
+. Hooks post-sauvegarde exécutés
+
+
+
+NOTE: L'exemple de commande précédent ne s'applique que lorsque vous exécutez une sauvegarde qui n'utilise pas d'instantané existant.
+
+
+NOTE: Vous devez toujours tester vos scripts d'exécution hook avant de les activer dans un environnement de production. Vous pouvez utiliser la commande 'kubectl exec' pour tester facilement les scripts. Après avoir activé les hooks d'exécution dans un environnement de production, testez les snapshots et les sauvegardes résultants pour vous assurer qu'ils sont cohérents. Vous pouvez le faire en clonant l'application dans un espace de noms temporaire, en restaurant le snapshot ou la sauvegarde, puis en testant l'application.
+
+
+NOTE: Si un hook d'exécution pré-snapshot ajoute, modifie ou supprime des ressources Kubernetes, ces modifications sont incluses dans le snapshot ou la sauvegarde et dans toute opération de restauration ultérieure.
+
+
+
+== Remarques importantes concernant les hooks d'exécution personnalisés
+
+Tenez compte des éléments suivants lors de la planification des hooks d'exécution pour vos apps.
+
+* Un point d'extension d'exécution doit utiliser un script pour effectuer des actions. De nombreux points d'extension d'exécution peuvent faire référence au même script.
+* Trident Protect exige que les scripts que les hooks d'exécution utilisent soient écrits au format de scripts shell exécutables.
+* La taille du script est limitée à 96KB.
+* Trident Protect utilise les paramètres d'exécution de hook et tous les critères correspondants pour déterminer quels hooks sont applicables à une opération de snapshot, de sauvegarde ou de restauration.
+
+
+
+NOTE: Parce que les hooks d'exécution réduisent souvent ou désactivent complètement la fonctionnalité de l'application sur laquelle ils s'exécutent, vous devez toujours essayer de minimiser le temps que vos hooks d'exécution personnalisés prennent pour s'exécuter. Si vous lancez une opération de sauvegarde ou de snapshot avec des hooks d'exécution associés, puis l'annulez, les hooks sont toujours autorisés à s'exécuter si l'opération de sauvegarde ou de snapshot a déjà commencé. Cela signifie que la logique utilisée dans un hook d'exécution post-sauvegarde ne peut pas supposer que la sauvegarde a été complétée.
+
+
+
+== Filtres de hooks d'exécution
+
+Lorsque vous ajoutez ou modifiez un hook d'exécution pour une application, vous pouvez ajouter des filtres au hook d'exécution afin de gérer les conteneurs auxquels le hook correspond. Les filtres sont utiles pour les applications qui utilisent la même image de conteneur sur tous les conteneurs, mais peuvent utiliser chaque image à des fins différentes (comme Elasticsearch). Les filtres vous permettent de créer des scénarios où les hooks d'exécution s'exécutent sur certains, mais pas nécessairement tous, les conteneurs identiques. Si vous créez plusieurs filtres pour un seul hook d'exécution, ils sont combinés avec un opérateur logique AND. Vous pouvez avoir jusqu'à 10 filtres actifs par hook d'exécution.
+
+Chaque filtre que vous ajoutez à un hook d'exécution utilise une expression régulière pour faire correspondre les conteneurs dans votre cluster. Lorsqu'un hook correspond à un conteneur, le hook exécutera son script associé sur ce conteneur. Les expressions régulières pour les filtres utilisent la syntaxe Regular Expression 2 (RE2), qui ne prend pas en charge la création d'un filtre excluant des conteneurs de la liste des correspondances. Pour obtenir des informations sur la syntaxe que Trident Protect prend en charge pour les expressions régulières dans les filtres de hooks d'exécution, consultez  https://github.com/google/re2/wiki/Syntax["Prise en charge de la syntaxe Regular Expression 2 (RE2)"^].
+
+
+NOTE: Si vous ajoutez un filtre d'espace de noms à un hook d'exécution qui s'exécute après une opération de restauration ou de clonage et que la source et la destination de la restauration ou du clonage se trouvent dans des espaces de noms différents, le filtre d'espace de noms ne s'applique qu'à l'espace de noms de destination.
+
+
+
+== Exemples de hooks d'exécution
+
+Visitez le  https://github.com/NetApp/Verda["Projet GitHub NetApp Verda"] pour télécharger des hooks d'exécution réels pour des applications populaires telles que Apache Cassandra et Elasticsearch. Vous pouvez également voir des exemples et obtenir des idées pour structurer vos propres hooks d'exécution personnalisés.
+
+
+
+== Créer un hook d'exécution
+
+Vous pouvez créer un hook d'exécution personnalisé pour une application à l'aide de Trident Protect. Vous devez disposer des autorisations Owner, Admin ou Member pour créer des hooks d'exécution.
+
+[role="tabbed-block"]
+====
+.Utilisez un CR
+--
+.Étapes
+. Créez le fichier de ressource personnalisée (CR) et nommez-le `trident-protect-hook.yaml`.
+. Configurez les attributs suivants pour qu'ils correspondent à votre environnement Trident Protect et à la configuration de votre cluster :
++
+** *metadata.name*: (_Obligatoire_) Le nom de cette ressource personnalisée; choisissez un nom unique et pertinent pour votre environnement.
+** *spec.applicationRef*: (_Obligatoire_) Le nom Kubernetes de l'application pour laquelle exécuter le hook d'exécution.
+** *spec.stage* : (_Obligatoire_) Chaîne de caractères indiquant à quelle étape de l’action le hook d’exécution doit s’exécuter. Valeurs possibles :
++
+*** Pré
+*** Publier
+
+
+** *spec.action* : (_Obligatoire_) Une chaîne indiquant l’action que le hook d’exécution effectuera, en supposant que les filtres de hook d’exécution spécifiés correspondent. Valeurs possibles :
++
+*** Instantané
+*** Sauvegarde
+*** Restaurer
+*** Basculement
+
+
+** *spec.enabled* : (_Optionnel_) Indique si ce hook d'exécution est activé ou désactivé. Si non spécifié, la valeur par défaut est true.
+** *spec.hookSource*: (_Obligatoire_) Une chaîne contenant le script de hook encodé en base64.
+** *spec.timeout* : (_Optionnel_) Un nombre définissant combien de temps, en minutes, le hook d'exécution est autorisé à s'exécuter. La valeur minimale est de 1 minute et la valeur par défaut est de 25 minutes si elle n'est pas spécifiée.
+** *spec.arguments*: (_Optionnel_) Une liste YAML d'arguments que vous pouvez spécifier pour le hook d'exécution.
+** *spec.matchingCriteria* : (_Facultatif_) Liste facultative de paires clé-valeur de critères, chaque paire constituant un filtre d'exécution hook. Vous pouvez ajouter jusqu'à 10 filtres par exécution hook.
+** *spec.matchingCriteria.type* : (_Optionnel_) Une chaîne identifiant le type de filtre du hook d'exécution. Valeurs possibles :
++
+*** ContainerImage
+*** ContainerName
+*** PodName
+*** PodLabel
+*** NamespaceName
+
+
+** *spec.matchingCriteria.value*: (_Optionnel_) Une chaîne de caractères ou une expression régulière identifiant la valeur du filtre du hook d'exécution.
++
+Exemple YAML :
+
++
+[source, yaml]
+----
+apiVersion: protect.trident.netapp.io/v1
+kind: ExecHook
+metadata:
+  name: example-hook-cr
+  namespace: my-app-namespace
+  annotations:
+    astra.netapp.io/astra-control-hook-source-id: /account/test/hookSource/id
+spec:
+  applicationRef: my-app-name
+  stage: Pre
+  action: Snapshot
+  enabled: true
+  hookSource: IyEvYmluL2Jhc2gKZWNobyAiZXhhbXBsZSBzY3JpcHQiCg==
+  timeout: 10
+  arguments:
+    - FirstExampleArg
+    - SecondExampleArg
+  matchingCriteria:
+    - type: containerName
+      value: mysql
+    - type: containerImage
+      value: bitnami/mysql
+    - type: podName
+      value: mysql
+    - type: namespaceName
+      value: mysql-a
+    - type: podLabel
+      value: app.kubernetes.io/component=primary
+    - type: podLabel
+      value: helm.sh/chart=mysql-10.1.0
+    - type: podLabel
+      value: deployment-type=production
+----
+
+
+. Après avoir rempli le fichier CR avec les valeurs correctes, appliquez le CR :
++
+[source, console]
+----
+kubectl apply -f trident-protect-hook.yaml
+----
+
+
+--
+.Utilisez la ligne de commandes (CLI)
+--
+.Étapes
+. Créez le hook d'exécution en remplaçant les valeurs entre crochets par les informations de votre environnement. Par exemple :
++
+[source, console]
+----
+tridentctl-protect create exechook <my_exec_hook_name> --action <action_type> --app <app_to_use_hook> --stage <pre_or_post_stage> --source-file <script-file> -n <application_namespace>
+----
+
+
+--
+====
+
+
+== Exécuter manuellement un hook d'exécution
+
+Vous pouvez exécuter manuellement un script d'exécution à des fins de test ou si vous devez le relancer manuellement après un échec. Vous devez disposer des autorisations de propriétaire, d'administrateur ou de membre pour exécuter manuellement des scripts d'exécution.
+
+L'exécution manuelle d'un hook consiste en deux étapes de base :
+
+. Créez une sauvegarde de ressources, qui collecte les ressources et crée une sauvegarde de celles-ci, déterminant où le hook s'exécutera
+. Exécutez le hook d'exécution sur la sauvegarde
+
+
+.Étape 1 : Créer une sauvegarde des ressources
+[%collapsible]
+====
+[role="tabbed-block"]
+=====
+.Utilisez un CR
+--
+.Étapes
+. Créez le fichier de ressource personnalisée (CR) et nommez-le `trident-protect-resource-backup.yaml`.
+. Configurez les attributs suivants pour qu'ils correspondent à votre environnement Trident Protect et à la configuration de votre cluster :
++
+** *metadata.name*: (_Obligatoire_) Le nom de cette ressource personnalisée; choisissez un nom unique et pertinent pour votre environnement.
+** *spec.applicationRef*: (_Obligatoire_) Le nom Kubernetes de l’application pour laquelle créer la sauvegarde de ressources.
+** *spec.appVaultRef* : (_Obligatoire_) Le nom du AppVault où les contenus de sauvegarde sont stockés.
+** *spec.appArchivePath* : Le chemin à l'intérieur de AppVault où le contenu de la sauvegarde est stocké. Vous pouvez utiliser la commande suivante pour trouver ce chemin :
++
+[source, console]
+----
+kubectl get backups <BACKUP_NAME> -n my-app-namespace -o jsonpath='{.status.appArchivePath}'
+----
++
+Exemple YAML :
+
++
+[source, yaml]
+----
+---
+apiVersion: protect.trident.netapp.io/v1
+kind: ResourceBackup
+metadata:
+  name: example-resource-backup
+spec:
+  applicationRef: my-app-name
+  appVaultRef: my-appvault-name
+  appArchivePath: example-resource-backup
+----
+
+
+. Après avoir rempli le fichier CR avec les valeurs correctes, appliquez le CR :
++
+[source, console]
+----
+kubectl apply -f trident-protect-resource-backup.yaml
+----
+
+
+--
+.Utilisez la ligne de commandes (CLI)
+--
+.Étapes
+. Créez la sauvegarde en remplaçant les valeurs entre crochets par les informations de votre environnement. Par exemple :
++
+[source, console]
+----
+tridentctl protect create resourcebackup <my_backup_name> --app <my_app_name> --appvault <my_appvault_name> -n <my_app_namespace> --app-archive-path <app_archive_path>
+----
+. Consultez l'état de la sauvegarde. Vous pouvez utiliser cet exemple de commande à plusieurs reprises jusqu'à la fin de l'opération :
++
+[source, console]
+----
+tridentctl protect get resourcebackup -n <my_app_namespace> <my_backup_name>
+----
+. Vérifiez que la sauvegarde a réussi :
++
+[source, console]
+----
+kubectl describe resourcebackup <my_backup_name>
+----
+
+
+--
+=====
+====
+.Étape 2 : Exécuter le hook d’exécution
+[%collapsible]
+====
+[role="tabbed-block"]
+=====
+.Utilisez un CR
+--
+.Étapes
+. Créez le fichier de ressource personnalisée (CR) et nommez-le `trident-protect-hook-run.yaml`.
+. Configurez les attributs suivants pour qu'ils correspondent à votre environnement Trident Protect et à la configuration de votre cluster :
++
+** *metadata.name*: (_Obligatoire_) Le nom de cette ressource personnalisée; choisissez un nom unique et pertinent pour votre environnement.
+** *spec.applicationRef*: (_Obligatoire_) Assurez-vous que cette valeur corresponde au nom de l’application de la ResourceBackup CR que vous avez créée à l’étape 1.
+** *spec.appVaultRef* : (_Obligatoire_) Assurez-vous que cette valeur corresponde à la appVaultRef du ResourceBackup CR que vous avez créée à l’étape 1.
+** *spec.appArchivePath* : Assurez-vous que cette valeur corresponde à la appArchivePath du CR ResourceBackup que vous avez créé à l’étape 1.
++
+[source, console]
+----
+kubectl get backups <BACKUP_NAME> -n my-app-namespace -o jsonpath='{.status.appArchivePath}'
+----
+** *spec.action* : (_Obligatoire_) Une chaîne indiquant l’action que le hook d’exécution effectuera, en supposant que les filtres de hook d’exécution spécifiés correspondent. Valeurs possibles :
++
+*** Instantané
+*** Sauvegarde
+*** Restaurer
+*** Basculement
+
+
+** *spec.stage* : (_Obligatoire_) Chaîne de caractères indiquant à quelle étape de l’action le hook d’exécution doit s’exécuter. Ce hook run n’exécutera aucun hook à une autre étape. Valeurs possibles :
++
+*** Pré
+*** Publier
++
+Exemple YAML :
+
++
+[source, yaml]
+----
+---
+apiVersion: protect.trident.netapp.io/v1
+kind: ExecHooksRun
+metadata:
+  name: example-hook-run
+spec:
+  applicationRef: my-app-name
+  appVaultRef: my-appvault-name
+  appArchivePath: example-resource-backup
+  stage: Post
+  action: Failover
+----
+
+
+
+
+. Après avoir rempli le fichier CR avec les valeurs correctes, appliquez le CR :
++
+[source, console]
+----
+kubectl apply -f trident-protect-hook-run.yaml
+----
+
+
+--
+.Utilisez la ligne de commandes (CLI)
+--
+.Étapes
+. Créer la requête d'exécution manuelle du hook :
++
+[source, console]
+----
+tridentctl protect create exechooksrun <my_exec_hook_run_name> -n <my_app_namespace> --action snapshot --stage <pre_or_post> --app <my_app_name> --appvault <my_appvault_name> --path <my_backup_name>
+----
+. Vérifiez l'état de l'exécution du hook. Vous pouvez exécuter cette commande plusieurs fois jusqu'à la fin de l'opération :
++
+[source, console]
+----
+tridentctl protect get exechooksrun -n <my_app_namespace> <my_exec_hook_run_name>
+----
+. Décrivez l'objet exechooksrun pour afficher les détails et l'état finaux :
++
+[source, console]
+----
+kubectl -n <my_app_namespace> describe exechooksrun <my_exec_hook_run_name>
+----
+
+
+--
+=====
+====

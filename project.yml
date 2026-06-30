@@ -1,0 +1,73 @@
+---
+settings:
+  name: Trident
+  downlevel: true
+  internal:
+    pdf_enabled: true
+  prod:
+    pdf_enabled: true
+    harmony_enabled: false
+  pdf:
+    allow-incremental: false
+  rss_page: trident-rn.html
+  versions:
+  - version-number: '26.02'
+    url: "/trident-2602"
+  - version-number: '26.06'
+    url: "/trident"
+  - version-number: '25.10'
+    url: "/trident-2510"
+  - version-number: '25.06'
+    url: "/trident-2506"
+  - version-number: '25.02'
+    url: "/trident-2502"
+  - version-number: '24.10'
+    url: "/trident-2410"
+  - version-number: '24.06'
+    url: "/trident-2406"
+  - version-number: '24.02'
+    url: "/trident-2402"
+  - version-number: '23.10'
+    url: "/trident-2310"
+  - version-number: '23.07'
+    url: "/trident-2307"
+  - version-number: '23.04'
+    url: "/trident-2304"
+  langs: fr-fr,us-en,de-de,es-es,it-it,pt-br,ja-jp,ko-kr,zh-cn,zh-tw
+sidebar:
+  entries:
+  - title: Documentation Trident
+    url: "/index.html"
+  - title: Notes de version
+    entries:
+    - title: Quoi de neuf
+      url: "/trident-rn.html"
+    - title: Versions antérieures
+      url: "/earlier-versions.html"
+    - title: Prise en charge de Trident pour les systèmes de stockage ASA r2
+      url: "/trident-asar2-support.html"
+    - title: Problèmes connus
+      url: "/known-issues.html"
+  - section: trident-get-started
+  - section: trident-install
+  - section: trident-use
+  - section: trident-managing-k8s
+  - section: trident-docker
+  - section: trident-reco
+  - section: trident-protect
+  - title: Articles de blog
+    url: "/blog-posts.html"
+  - title: Connaissances et support
+    entries:
+    - title: FAQ
+      url: "/faq.html"
+    - title: Dépannage
+      url: "/troubleshooting.html"
+    - title: Obtenez de l'aide
+      url: "/get-help.html"
+  - section: trident-reference
+  - title: Mentions légales
+    url: "/legal-notices.html"
+product-family:
+  name: Trident
+  repo: astra-family

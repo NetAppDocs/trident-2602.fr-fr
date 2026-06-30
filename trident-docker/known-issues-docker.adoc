@@ -1,0 +1,64 @@
+---
+sidebar: sidebar 
+permalink: trident-docker/known-issues-docker.html 
+keywords: known issues, trident, trident for docker, docker 
+summary: 'Trouvez des informations sur les problèmes connus lors de l"utilisation de Trident avec Docker.' 
+---
+= Problèmes et limitations connus
+:hardbreaks:
+:allow-uri-read: 
+:icons: font
+:imagesdir: ../media/
+
+
+[role="lead"]
+Trouvez des informations sur les problèmes connus et les limitations lors de l'utilisation de Trident avec Docker.
+
+
+
+== La mise à niveau du plugin Trident Docker Volume vers la version 20.10 et ultérieures à partir de versions plus anciennes entraîne un échec de mise à niveau avec l’erreur « no such file or directory ».
+
+.Solution de contournement
+. Désactivez le plugin.
++
+[source, console]
+----
+docker plugin disable -f netapp:latest
+----
+. Supprimez le plugin.
++
+[source, console]
+----
+docker plugin rm -f netapp:latest
+----
+. Réinstallez le plugin en fournissant le paramètre supplémentaire `config`.
++
+[source, console]
+----
+docker plugin install netapp/trident-plugin:20.10 --alias netapp --grant-all-permissions config=config.json
+----
+
+
+
+
+== Les noms de volumes doivent comporter au minimum 2 caractères.
+
+
+NOTE: Il s'agit d'une limitation du client Docker. Le client interprétera un nom d'un seul caractère comme étant un chemin d'accès Windows. https://github.com/moby/moby/issues/25773["Voir le bug 25773"^].
+
+
+
+== Docker Swarm présente certains comportements qui empêchent Trident de le prendre en charge avec chaque combinaison de stockage et de pilote.
+
+* Docker Swarm utilise actuellement le nom du volume au lieu de l’ID du volume comme identifiant unique de volume.
+* Les requêtes de volume sont envoyées simultanément à chaque nœud dans un cluster Swarm.
+* Les plugins de volume (y compris Trident) doivent s'exécuter indépendamment sur chaque nœud d'un cluster Swarm. En raison de la façon dont ONTAP fonctionne et de la manière dont les `ontap-nas` et `ontap-san` pilotes fonctionnent, ce sont les seuls qui peuvent opérer dans ces limites.
+
+
+Les autres pilotes sont sujets à des problèmes tels que des conditions de concurrence qui peuvent entraîner la création d'un grand nombre de volumes pour une seule requête sans "gagnant" clair ; par exemple, Element possède une fonctionnalité qui permet à des volumes d'avoir le même nom mais des identifiants différents.
+
+NetApp a fourni des commentaires à l'équipe Docker, mais n'a aucune indication de recours futur.
+
+
+
+== Si un FlexGroup est en cours de provisionnement, ONTAP ne provisionne pas un second FlexGroup si le second FlexGroup a un ou plusieurs agrégats en commun avec le FlexGroup en cours de provisionnement.

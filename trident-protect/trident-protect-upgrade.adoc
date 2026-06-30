@@ -1,0 +1,91 @@
+---
+sidebar: sidebar 
+permalink: trident-protect/trident-protect-upgrade.html 
+keywords: trident, protect, netapp, upgrade, new, version 
+summary: Vous pouvez mettre à jour Trident Protect vers la dernière version pour bénéficier de nouvelles fonctionnalités ou de correctifs de bugs. 
+---
+= Mettre à niveau Trident Protect
+:hardbreaks:
+:allow-uri-read: 
+:nofooter: 
+:icons: font
+:linkattrs: 
+:imagesdir: ../media/
+
+
+[role="lead"]
+Vous pouvez mettre à jour Trident Protect vers la dernière version pour bénéficier de nouvelles fonctionnalités ou de correctifs de bugs.
+
+[NOTE]
+====
+* Lors de la mise à niveau depuis la version 24.10, les instantanés en cours d’exécution pendant la mise à niveau peuvent échouer. Cet échec n’empêche pas la création future d’instantanés, qu’ils soient manuels ou planifiés. Si un instantané échoue pendant la mise à niveau, vous pouvez créer un nouvel instantané manuellement pour garantir la protection de votre application.
++
+Pour éviter d'éventuels dysfonctionnements, vous pouvez désactiver toutes les planifications de snapshots avant la mise à niveau et les réactiver ensuite. Cependant, cela entraîne l'absence de snapshots planifiés pendant la période de mise à niveau.
+
+* Pour les installations de registre privé, assurez-vous que le Helm chart et les images requis pour la version cible sont disponibles dans votre registre privé, et vérifiez que vos valeurs Helm personnalisées sont compatibles avec la nouvelle version du chart. Pour plus d'informations, consultez link:trident-protect-installation.html["Installez Trident Protect à partir d'un registre privé"].
+
+
+====
+
+
+== Étape 1 : Sélectionnez une version
+
+Les versions de Trident Protect suivent une convention de nommage basée sur la date `YY.MM`, où « YY » est les deux derniers chiffres de l'année et « MM » est le mois. Les versions dot suivent une `YY.MM.X` convention, où « X » est le niveau de correctif. Vous sélectionnerez la version vers laquelle effectuer la mise à niveau en fonction de la version à partir de laquelle vous effectuez la mise à niveau.
+
+* Vous pouvez effectuer une mise à niveau directe vers n'importe quelle version cible située dans un intervalle de quatre versions maximum par rapport à votre version installée. Par exemple, vous pouvez effectuer une mise à niveau directe de 24.10 (ou de toute version dérivée de 24.10) vers 25.10.
+* Si vous effectuez une mise à niveau depuis une version en dehors de la fenêtre de quatre versions, procédez à une mise à niveau en plusieurs étapes. Utilisez les instructions de mise à niveau pour la link:../earlier-versions.html["version antérieure"] version à partir de laquelle vous effectuez la mise à niveau afin de passer à la version la plus récente qui entre dans la fenêtre de quatre versions. Par exemple, si vous utilisez la version 24.10 et souhaitez passer à la version 26.02 :
++
+.. Première mise à jour de 24.10 à 25.02.
+.. Ensuite, passez de 25.02 à 26.02.
+
+
+
+
+
+
+== Étape 2 : Mise à niveau de Trident Protect
+
+Pour mettre à niveau Trident Protect, procédez comme suit.
+
+.Étapes
+. Mettre à jour le dépôt Trident Helm :
++
+[source, console]
+----
+helm repo update
+----
+. Mettez à niveau les CRD Trident Protect :
++
+
+NOTE: Cette étape est nécessaire si vous effectuez une mise à niveau depuis une version antérieure à la 25.06, car les CRD sont désormais inclus dans le chart Helm Trident Protect.
+
++
+.. Exécutez cette commande pour transférer la gestion des CRD de  `trident-protect-crds` vers  `trident-protect` :
++
+[source, console]
+----
+kubectl get crd | grep protect.trident.netapp.io | awk '{print $1}' | xargs -I {} kubectl patch crd {} --type merge -p '{"metadata":{"annotations":{"meta.helm.sh/release-name": "trident-protect"}}}'
+----
+.. Exécutez cette commande pour supprimer le secret Helm pour le  `trident-protect-crds` chart :
++
+
+NOTE: Ne désinstallez pas le  `trident-protect-crds`chart à l'aide de Helm, car cela pourrait supprimer vos CRDs et toutes les données associées.
+
++
+[source, console]
+----
+kubectl delete secret -n trident-protect -l name=trident-protect-crds,owner=helm
+----
+
+
+. Mise à niveau de Trident Protect :
++
+[source, console]
+----
+helm upgrade trident-protect netapp-trident-protect/trident-protect --version 100.2602.0 --namespace trident-protect
+----
++
+
+NOTE: Vous pouvez configurer le niveau de journalisation lors de la mise à niveau en ajoutant  `--set logLevel=debug` à la commande de mise à niveau. Le niveau de journalisation par défaut est  `warn`. La journalisation de débogage est recommandée pour le dépannage, car elle aide NetApp support à diagnostiquer les problèmes sans nécessiter de modification du niveau de journalisation ni de reproduction du problème.
+
+

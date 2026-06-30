@@ -1,0 +1,106 @@
+---
+sidebar: sidebar 
+permalink: trident-protect/trident-protect-generate-support-bundle.html 
+keywords: trident, protect, bundle, support, netapp, custom, resource, file 
+summary: 'Trident Protect permet aux administrateurs de générer des bundles contenant des informations utiles à NetApp Support, notamment les journaux, les métriques et les informations de topologie des clusters et des applications gérés. Si vous êtes connecté à Internet, vous pouvez charger des bundles de support sur le NetApp Support Site (NSS) à l"aide d"un fichier de ressource personnalisé (CR).' 
+---
+= Générer un bundle de support Trident Protect
+:hardbreaks:
+:allow-uri-read: 
+:nofooter: 
+:icons: font
+:linkattrs: 
+:imagesdir: ../media/
+
+
+[role="lead"]
+Trident Protect permet aux administrateurs de générer des bundles contenant des informations utiles à NetApp Support, notamment les journaux, les métriques et les informations de topologie des clusters et des applications gérés. Si vous êtes connecté à Internet, vous pouvez charger des bundles de support sur le NetApp Support Site (NSS) à l'aide d'un fichier de ressource personnalisé (CR).
+
+[role="tabbed-block"]
+====
+.Créez un bundle de support à l'aide d'un CR
+--
+.Étapes
+. Créez le fichier de ressource personnalisée (CR) et nommez-le (par exemple, `trident-protect-support-bundle.yaml`).
+. Configurez les attributs suivants :
++
+** *metadata.name*: (_Obligatoire_) Le nom de cette ressource personnalisée; choisissez un nom unique et pertinent pour votre environnement.
+** *spec.triggerType* : (_Obligatoire_) Détermine si le support bundle est généré immédiatement ou planifié. La génération planifiée du support bundle a lieu à 12h00 UTC. Valeurs possibles :
++
+*** Programmé
+*** Manuel
+
+
+** *spec.uploadEnabled* : (_Facultatif_) Contrôle si le bundle de support doit être téléchargé sur le site de support NetApp après sa génération. Si non spécifié, la valeur par défaut est  `false`. Valeurs possibles :
++
+*** true
+*** faux (default)
+
+
+** *spec.dataWindowStart* : (_Facultatif_) Une chaîne de date au format RFC 3339 qui spécifie la date et l’heure auxquelles la fenêtre des données incluses dans le bundle de support doit commencer. Si elle n’est pas spécifiée, la valeur par défaut est il y a 24 heures. La date de fenêtre la plus ancienne que vous pouvez spécifier est il y a 7 jours.
++
+Exemple YAML :
+
++
+[source, yaml]
+----
+---
+apiVersion: protect.trident.netapp.io/v1
+kind: AutoSupportBundle
+metadata:
+  name: trident-protect-support-bundle
+spec:
+  triggerType: Manual
+  uploadEnabled: true
+  dataWindowStart: 2024-05-05T12:30:00Z
+----
+
+
+. Après avoir rempli le fichier  `trident-protect-support-bundle.yaml` avec les valeurs correctes, appliquez le CR :
++
+[source, console]
+----
+kubectl apply -f trident-protect-support-bundle.yaml -n trident-protect
+----
+
+
+--
+.Créez un bundle de support à l'aide de la ligne de commandes
+--
+.Étapes
+. Créez le bundle de support en remplaçant les valeurs entre crochets par les informations de votre environnement. Le  `trigger-type` détermine si le bundle est créé immédiatement ou si l'heure de création est dictée par la planification, et peut être  `Manual` ou  `Scheduled`. Le paramètre par défaut est  `Manual`.
++
+Par exemple :
+
++
+[source, console]
+----
+tridentctl-protect create autosupportbundle <my-bundle-name> --trigger-type <trigger-type> -n trident-protect
+----
+
+
+--
+====
+
+
+== Surveiller et récupérer le bundle de support
+
+Après avoir créé un bundle de support en utilisant l'une ou l'autre méthode, vous pouvez suivre la progression de sa génération et le récupérer sur votre système local.
+
+.Étapes
+. Attendez que le  `status.generationState` atteigne l’ `Completed` état. Vous pouvez suivre la progression de la génération avec la commande suivante :
++
+[source, console]
+----
+kubectl get autosupportbundle trident-protect-support-bundle -n trident-protect
+----
+. Récupérez le support bundle sur votre système local. Obtenez la commande de copie à partir du bundle AutoSupport terminé :
++
+[source, console]
+----
+kubectl describe autosupportbundle trident-protect-support-bundle -n trident-protect
+----
++
+Trouvez la commande  `kubectl cp` dans le résultat et exécutez-la en remplaçant l’argument de destination par votre répertoire local préféré.
+
+

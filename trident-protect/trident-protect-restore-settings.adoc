@@ -1,0 +1,143 @@
+---
+sidebar: sidebar 
+permalink: trident-protect/trident-protect-restore-settings.html 
+keywords: trident, protect, restore, data, backup 
+summary: 'Vous pouvez personnaliser les opérations de restauration de Trident Protect à l"aide d"annotations, de paramètres d"espace de noms et d"options de stockage.' 
+---
+= Utilisez les paramètres de restauration avancés de Trident Protect
+:hardbreaks:
+:allow-uri-read: 
+:nofooter: 
+:icons: font
+:linkattrs: 
+:imagesdir: ../media/
+
+
+[role="lead"]
+Vous pouvez personnaliser les opérations de restauration à l'aide de paramètres avancés tels que les annotations, les paramètres de namespace et les options de stockage pour répondre à vos besoins spécifiques.
+
+
+
+== Annotations et étiquettes d'espace de noms lors des opérations de restauration et de basculement
+
+Lors des opérations de restauration et de basculement, les étiquettes et annotations de l'espace de noms de destination sont mises à jour pour correspondre aux étiquettes et annotations de l'espace de noms source. Les étiquettes ou annotations de l'espace de noms source qui n'existent pas dans l'espace de noms de destination sont ajoutées, et toutes les étiquettes ou annotations déjà présentes sont remplacées pour correspondre à la valeur de l'espace de noms source. Les étiquettes ou annotations qui existent uniquement dans l'espace de noms de destination restent inchangées.
+
+
+NOTE: Si vous utilisez Red Hat OpenShift, il est important de noter le rôle crucial des annotations d'espace de noms dans les environnements OpenShift. Les annotations d'espace de noms garantissent que les pods restaurés respectent les permissions et les configurations de sécurité appropriées définies par les contraintes de contexte de sécurité (OpenShift SCC) et peuvent accéder aux volumes sans problème de permissions. Pour plus d'informations, consultez la link:https://docs.redhat.com/en/documentation/openshift_container_platform/4.20/html/authentication_and_authorization/managing-pod-security-policies["Documentation des contraintes de contexte de sécurité OpenShift"^].
+
+Vous pouvez empêcher l'écrasement de certaines annotations dans l'espace de noms de destination en définissant la variable d'environnement Kubernetes  `RESTORE_SKIP_NAMESPACE_ANNOTATIONS` avant d'effectuer l'opération de restauration ou de basculement. Par exemple :
+
+[source, console]
+----
+helm upgrade trident-protect -n trident-protect netapp-trident-protect/trident-protect \
+  --set-string restoreSkipNamespaceAnnotations="{<annotation_key_to_skip_1>,<annotation_key_to_skip_2>}" \
+  --reuse-values
+----
+
+NOTE: Lors d'une opération de restauration ou de basculement, les annotations et étiquettes d'espace de noms spécifiées dans  `restoreSkipNamespaceAnnotations` et  `restoreSkipNamespaceLabels` sont exclues de l'opération de restauration ou de basculement. Assurez-vous que ces paramètres sont configurés lors de l'installation initiale de Helm. Pour en savoir plus, consultez link:../trident-protect/trident-protect-customize-installation.html#configure-additional-trident-protect-helm-chart-settings["Configurer des paramètres supplémentaires du chart Helm Trident Protect"].
+
+Si vous avez installé l'application source avec Helm avec le  `--create-namespace` flag, un traitement spécial est appliqué à la clé de label  `name`. Lors du processus de restauration ou de basculement, Trident Protect copie ce label dans l'espace de noms de destination, mais met à jour la valeur avec celle de l'espace de noms de destination si la valeur provenant de la source correspond à l'espace de noms source. Si cette valeur ne correspond pas à l'espace de noms source, elle est copiée dans l'espace de noms de destination sans modification.
+
+
+
+=== Exemple
+
+L'exemple suivant présente un espace de noms source et un espace de noms de destination, chacun possédant des annotations et des étiquettes différentes. Vous pouvez voir l'état de l'espace de noms de destination avant et après l'opération, et comment les annotations et les étiquettes sont combinées ou écrasées dans l'espace de noms de destination.
+
+
+
+==== Avant l'opération de restauration ou de basculement
+
+Le tableau suivant illustre l'état des espaces de noms source et de destination de l'exemple avant l'opération de restauration ou de basculement :
+
+[cols="1,2a,2a"]
+|===
+| Espace de noms | Annotations | Étiquettes 
+
+
+| Espace de noms ns-1 (source)  a| 
+* annotation.one/key: "updatedvalue"
+* annotation.two/key: "true"
+
+ a| 
+* environment=production
+* conformité=hipaa
+* name=ns-1
+
+
+
+
+| Espace de noms ns-2 (destination)  a| 
+* annotation.one/key: "true"
+* annotation.three/key: "false"
+
+ a| 
+* rôle=base de données
+
+
+|===
+
+
+==== Après l'opération de restauration
+
+Le tableau suivant illustre l'état de l'espace de noms de destination après l'opération de restauration ou de basculement. Certaines clés ont été ajoutées, d'autres ont été écrasées, et l' `name`étiquette a été mise à jour pour correspondre à l'espace de noms de destination :
+
+[cols="1,2a,2a"]
+|===
+| Espace de noms | Annotations | Étiquettes 
+
+
+| Espace de noms ns-2 (destination)  a| 
+* annotation.one/key: "updatedvalue"
+* annotation.two/key: "true"
+* annotation.three/key: "false"
+
+ a| 
+* name=ns-2
+* conformité=hipaa
+* environment=production
+* rôle=base de données
+
+
+|===
+
+
+== Champs pris en charge
+
+Cette section décrit les champs supplémentaires disponibles pour les opérations de restauration.
+
+
+
+=== Correspondance des classes de stockage
+
+L' `spec.storageClassMapping`attribut définit une correspondance entre une classe de stockage présente dans l'application source et une nouvelle classe de stockage sur le cluster cible. Vous pouvez l'utiliser lors de la migration d'applications entre des clusters avec des classes de stockage différentes ou lors du changement de système de stockage pour les opérations BackupRestore.
+
+*Exemple :*
+
+[source, yaml]
+----
+storageClassMapping:
+  - destination: "destinationStorageClass1"
+    source: "sourceStorageClass1"
+  - destination: "destinationStorageClass2"
+    source: "sourceStorageClass2"
+----
+
+
+== Annotations prises en charge
+
+Cette section répertorie les annotations prises en charge pour configurer différents comportements du système. Si une annotation n'est pas explicitement définie par l'utilisateur, le système utilisera la valeur par défaut.
+
+[cols="1,1,3,1"]
+|===
+| Annotation | Type | Description | valeur par défaut 
+
+
+| protect.trident.netapp.io/data-mover-timeout-sec | chaîne | Le temps maximal (en secondes) autorisé pour que l'opération de déplacement de données soit bloquée. | "300" 
+
+
+| protect.trident.netapp.io/kopia-content-cache-size-limit-mb | chaîne | La limite de taille maximale (en mégaoctets) pour le cache de contenu Kopia. | "1000" 
+
+
+| protect.trident.netapp.io/pvc-bind-timeout-sec | chaîne | Temps maximal (en secondes) d'attente pour que tout nouveau PersistentVolumeClaims (PVC) atteigne la phase  `Bound` avant que l'opération n'échoue. S'applique à tous les types de CR de restauration (BackupRestore, BackupInplaceRestore, SnapshotRestore, SnapshotInplaceRestore). Utilisez une valeur plus élevée si votre backend de stockage ou votre cluster nécessite souvent plus de temps. | "1200" (20 minutes) 
+|===

@@ -1,0 +1,166 @@
+---
+sidebar: sidebar 
+permalink: trident-use/vol-provision.html 
+keywords: volumes, pvc, pv, persistentvolume, persistentvolumeclaim, mount, pod, provision 
+summary: 'Créez un PersistentVolume (PV) et un PersistentVolumeClaim (PVC) qui utilise la StorageClass Kubernetes configurée pour demander l"accès au PV. Vous pouvez ensuite monter le PV sur un pod.' 
+---
+= Provisionner un volume
+:hardbreaks:
+:allow-uri-read: 
+:icons: font
+:imagesdir: ../media/
+
+
+[role="lead"]
+Créez un PersistentVolumeClaim (PVC) qui utilise le StorageClass Kubernetes configuré pour demander l'accès au PV. Vous pouvez ensuite monter le PV sur un pod.
+
+
+
+== Aperçu
+
+Un  https://kubernetes.io/docs/concepts/storage/persistent-volumes["_PersistentVolumeClaim_"^] (PVC) est une demande d'accès au PersistentVolume sur le cluster.
+
+Le PVC peut être configuré pour demander un espace de stockage d'une certaine taille ou un certain mode d'accès. En utilisant la StorageClass associée, l'administrateur du cluster peut contrôler plus que la taille et le mode d'accès du PersistentVolume—comme les performances ou le niveau de service.
+
+Après avoir créé le PVC, vous pouvez monter le volume dans un pod.
+
+
+
+== Créer le PVC
+
+.Étapes
+. Créez le PVC.
++
+[listing]
+----
+kubectl create -f pvc.yaml
+----
+. Vérifiez l'état du PVC.
++
+[listing]
+----
+kubectl get pvc
+----
+
+
+[listing]
+----
+NAME        STATUS  VOLUME     CAPACITY   ACCESS MODES  STORAGECLASS AGE
+pvc-storage Bound   pv-name    1Gi        RWO                  5m
+----
+. Montez le volume dans un pod.
++
+[listing]
+----
+kubectl create -f pv-pod.yaml
+----
++
+
+NOTE: Vous pouvez surveiller la progression en utilisant `kubectl get pod --watch`.
+
+. Vérifiez que le volume est monté sur `/my/mount/path`.
++
+[listing]
+----
+kubectl exec -it task-pv-pod -- df -h /my/mount/path
+----
+. Vous pouvez maintenant supprimer le Pod. L'application Pod n'existera plus, mais le volume restera.
++
+[listing]
+----
+kubectl delete pod pv-pod
+----
+
+
+
+
+=== Exemples de manifestes
+
+.Exemples de manifestes PersistentVolumeClaim
+[%collapsible]
+====
+Ces exemples montrent les options de configuration de base des PVC.
+
+.PVC avec accès RWO
+Cet exemple montre un PVC de base avec un accès RWO qui est associé à un StorageClass nommé `basic-csi`.
+
+[source, yaml]
+----
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: pvc-storage
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+  storageClassName: basic-csi
+----
+.PVC avec NVMe/TCP
+Cet exemple montre un PVC de base pour NVMe/TCP avec accès RWO qui est associé à un StorageClass nommé `protection-gold`.
+
+[source, yaml]
+----
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+name: pvc-san-nvme
+spec:
+accessModes:
+  - ReadWriteOnce
+resources:
+  requests:
+    storage: 300Mi
+storageClassName: protection-gold
+----
+====
+.Exemples de manifestes Pod
+[%collapsible]
+====
+Ces exemples montrent des configurations de base pour attacher le PVC à un pod.
+
+.Configuration de base
+[source, yaml]
+----
+kind: Pod
+apiVersion: v1
+metadata:
+  name: pv-pod
+spec:
+  volumes:
+    - name: storage
+      persistentVolumeClaim:
+       claimName: pvc-storage
+  containers:
+    - name: pv-container
+      image: nginx
+      ports:
+        - containerPort: 80
+          name: "http-server"
+      volumeMounts:
+        - mountPath: "/my/mount/path"
+          name: storage
+----
+.Configuration NVMe/TCP de base
+[source, yaml]
+----
+apiVersion: v1
+kind: Pod
+metadata:
+  name: pod-nginx
+spec:
+  volumes:
+    - name: basic-pvc
+      persistentVolumeClaim:
+        claimName: pvc-san-nvme
+  containers:
+    - name: task-pv-container
+      image: nginx
+      volumeMounts:
+        - mountPath: "/my/mount/path"
+          name: basic-pvc
+----
+====
+Consultez link:../trident-reference/objects.html["Objets Kubernetes et Trident"] pour plus de détails sur la manière dont les classes de stockage interagissent avec le  `PersistentVolumeClaim` et les paramètres permettant de contrôler la façon dont Trident provisionne les volumes.

@@ -1,0 +1,10 @@
+= 
+:allow-uri-read: 
+
+
+.Avant de commencer
+Assurez-vous que la durée de validité du jeton de session AWS est suffisante pour toute opération de restauration s3 de longue durée. Si le jeton expire pendant l'opération de restauration, l'opération peut échouer.
+
+* Consultez la  https://docs.aws.amazon.com/STS/latest/APIReference/API_GetSessionToken.html["Documentation AWS API"^] pour plus d'informations sur la vérification de l'expiration du jeton de session actuel.
+* Consultez la  https://docs.aws.amazon.com/IAM/latest/UserGuide/id_credentials_temp_use-resources.html["Documentation AWS IAM"^] pour plus d'informations sur les identifiants relatifs aux ressources AWS.
+
