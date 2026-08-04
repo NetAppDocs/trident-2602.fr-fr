@@ -18,7 +18,7 @@ Vous pouvez facilement mettre à niveau une installation Trident existante en ut
 La désinstallation et la réinstallation de Trident constituent une mise à niveau. Lorsque vous désinstallez Trident, la Persistent Volume Claim (PVC) et le Persistent Volume (PV) utilisés par le déploiement Trident ne sont pas supprimés. Les PV déjà provisionnés restent disponibles pendant que Trident est hors ligne, et Trident provisionnera des volumes pour toutes les PVC créées entre-temps après son retour en ligne.
 
 .Avant de commencer
-Vérifiez link:upgrade-trident.html#select-an-upgrade-method["Sélectionnez une méthode de mise à niveau"] avant la mise à niveau en utilisant  `tridentctl`.
+Vérifiez link:upgrade-trident.html#step-3-select-an-upgrade-method["Sélectionnez une méthode de mise à niveau"] avant la mise à niveau en utilisant  `tridentctl`.
 
 .Étapes
 . Exécutez la commande de désinstallation dans `tridentctl` pour supprimer toutes les ressources associées à Trident à l’exception des CRD et des objets associés.

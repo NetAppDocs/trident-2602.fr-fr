@@ -18,6 +18,7 @@ Un point d'exécution est une action personnalisée que vous pouvez configurer p
 
 
 
+[[types-of-execution-hooks]]
 == Types de hooks d'exécution
 
 Trident Protect prend en charge les types de hooks d'exécution suivants, en fonction du moment où ils peuvent être exécutés :
@@ -32,6 +33,7 @@ Trident Protect prend en charge les types de hooks d'exécution suivants, en fon
 
 
 
+[[order-of-execution]]
 === Ordre d'exécution
 
 Lorsqu'une opération de protection des données est exécutée, les événements du hook d'exécution se produisent dans l'ordre suivant :
@@ -62,6 +64,7 @@ NOTE: Si un hook d'exécution pré-snapshot ajoute, modifie ou supprime des ress
 
 
 
+[[important-notes-about-custom-execution-hooks]]
 == Remarques importantes concernant les hooks d'exécution personnalisés
 
 Tenez compte des éléments suivants lors de la planification des hooks d'exécution pour vos apps.
@@ -77,6 +80,7 @@ NOTE: Parce que les hooks d'exécution réduisent souvent ou désactivent compl�
 
 
 
+[[execution-hook-filters]]
 == Filtres de hooks d'exécution
 
 Lorsque vous ajoutez ou modifiez un hook d'exécution pour une application, vous pouvez ajouter des filtres au hook d'exécution afin de gérer les conteneurs auxquels le hook correspond. Les filtres sont utiles pour les applications qui utilisent la même image de conteneur sur tous les conteneurs, mais peuvent utiliser chaque image à des fins différentes (comme Elasticsearch). Les filtres vous permettent de créer des scénarios où les hooks d'exécution s'exécutent sur certains, mais pas nécessairement tous, les conteneurs identiques. Si vous créez plusieurs filtres pour un seul hook d'exécution, ils sont combinés avec un opérateur logique AND. Vous pouvez avoir jusqu'à 10 filtres actifs par hook d'exécution.
@@ -88,12 +92,14 @@ NOTE: Si vous ajoutez un filtre d'espace de noms à un hook d'exécution qui s'e
 
 
 
+[[execution-hook-examples]]
 == Exemples de hooks d'exécution
 
 Visitez le  https://github.com/NetApp/Verda["Projet GitHub NetApp Verda"] pour télécharger des hooks d'exécution réels pour des applications populaires telles que Apache Cassandra et Elasticsearch. Vous pouvez également voir des exemples et obtenir des idées pour structurer vos propres hooks d'exécution personnalisés.
 
 
 
+[[create-an-execution-hook]]
 == Créer un hook d'exécution
 
 Vous pouvez créer un hook d'exécution personnalisé pour une application à l'aide de Trident Protect. Vous devez disposer des autorisations Owner, Admin ou Member pour créer des hooks d'exécution.
@@ -202,6 +208,7 @@ tridentctl-protect create exechook <my_exec_hook_name> --action <action_type> --
 ====
 
 
+[[manually-run-an-execution-hook]]
 == Exécuter manuellement un hook d'exécution
 
 Vous pouvez exécuter manuellement un script d'exécution à des fins de test ou si vous devez le relancer manuellement après un échec. Vous devez disposer des autorisations de propriétaire, d'administrateur ou de membre pour exécuter manuellement des scripts d'exécution.

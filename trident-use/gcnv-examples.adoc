@@ -16,6 +16,7 @@ Découvrez les options de configuration backend pour Google Cloud NetApp Volumes
 
 
 
+[[backend-configuration-options]]
 == Options de configuration du backend
 
 Chaque backend provisionne des volumes dans une seule région Google Cloud. Pour créer des volumes dans d'autres régions, vous pouvez définir des backends supplémentaires.
@@ -74,6 +75,7 @@ Chaque backend provisionne des volumes dans une seule région Google Cloud. Pour
 |===
 
 
+[[volume-provisioning-options]]
 == Options de provisionnement de volume
 
 Vous pouvez contrôler le provisionnement des volumes par défaut dans la section  `defaults` du fichier de configuration.
@@ -96,6 +98,7 @@ Vous pouvez contrôler le provisionnement des volumes par défaut dans la sectio
 |===
 
 
+[[example-configurations]]
 == Exemples de configurations
 
 Les exemples suivants présentent des configurations de base qui laissent la plupart des paramètres par défaut. C'est la manière la plus simple de définir un backend.
@@ -332,6 +335,7 @@ supportedTopologies:
 ====
 
 
+[[whats-next]]
 == Et ensuite ?
 
 Après avoir créé le fichier de configuration, exécutez la commande suivante :
@@ -359,6 +363,7 @@ Après avoir identifié et corrigé le problème lié au fichier de configuratio
 
 
 
+[[storage-class-definitions]]
 == Définitions des classes de stockage
 
 L'exemple suivant est une  `StorageClass`définition de base qui fait référence au backend ci-dessus.
@@ -412,6 +417,7 @@ Pour plus de détails sur les classes de stockage, reportez-vous à link:../trid
 
 
 
+[[example-definitions-for-smb-volumes]]
 === Exemples de définitions pour les volumes SMB
 
 En utilisant  `nasType`,  `node-stage-secret-name` et  `node-stage-secret-namespace`, vous pouvez spécifier un volume SMB et fournir les informations d'identification Active Directory requises. Tout utilisateur/mot de passe Active Directory, avec ou sans autorisations, peut être utilisé pour le secret de l'étape du nœud.
@@ -472,6 +478,7 @@ NOTE: `nasType: smb`Filtres pour les pools prenant en charge les volumes SMB. `n
 
 
 
+[[pvc-definition-example]]
 === Exemple de définition du PVC
 
 [source, yaml]

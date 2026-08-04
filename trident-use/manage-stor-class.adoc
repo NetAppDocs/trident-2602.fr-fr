@@ -16,6 +16,7 @@ Vous pouvez consulter les classes de stockage existantes, définir une classe de
 
 
 
+[[view-the-existing-storage-classes]]
 == Afficher les classes de stockage existantes
 
 * Pour afficher les classes de stockage Kubernetes existantes, exécutez la commande suivante :
@@ -48,6 +49,7 @@ tridentctl get storageclass <storage-class> -o json
 ----
 
 
+[[set-a-default-storage-class]]
 == Définir une classe de stockage par défaut
 
 Kubernetes 1.6 a introduit la possibilité de définir une classe de stockage par défaut. Il s'agit de la classe de stockage qui sera utilisée pour provisionner un volume persistant si un utilisateur n'en spécifie pas dans une revendication de volume persistant (PVC).
@@ -74,6 +76,7 @@ NOTE: Il ne devrait y avoir qu'une seule classe de stockage par défaut dans vot
 
 
 
+[[identify-the-backend-for-a-storage-class]]
 == Identifier le backend d'une classe de stockage
 
 Voici un exemple du type de questions auxquelles vous pouvez répondre avec le JSON que  `tridentctl` génère pour les objets backend Trident. Cela utilise l' `jq` utilitaire, que vous devrez peut-être installer d'abord.
@@ -84,6 +87,7 @@ tridentctl get storageclass -o json | jq  '[.items[] | {storageClass: .Config.na
 ----
 
 
+[[delete-a-storage-class]]
 == Supprimer une classe de stockage
 
 Pour supprimer une classe de stockage de Kubernetes, exécutez la commande suivante :

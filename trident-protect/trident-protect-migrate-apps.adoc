@@ -21,12 +21,14 @@ NOTE: Lors de la migration d'une application, tous les points d'exécution confi
 
 
 
+[[backup-and-restore-operations]]
 == Opérations de sauvegarde et de restauration
 
 Pour effectuer des opérations de sauvegarde et de restauration pour les scénarios suivants, vous pouvez automatiser des tâches spécifiques de sauvegarde et de restauration.
 
 
 
+[[clone-to-same-cluster]]
 === Cloner vers le même cluster
 
 Pour cloner une application sur le même cluster, créez un instantané ou une sauvegarde et restaurez les données sur le même cluster.
@@ -48,6 +50,7 @@ Pour cloner une application sur le même cluster, créez un instantané ou une s
 
 
 
+[[clone-to-different-cluster]]
 === Cloner vers un cluster différent
 
 Pour cloner une application sur un autre cluster (effectuer un clonage inter-clusters), créez une sauvegarde sur le cluster source, puis restaurez la sauvegarde sur un cluster différent. Assurez-vous que Trident Protect est installé sur le cluster de destination.
@@ -63,6 +66,7 @@ NOTE: Vous pouvez répliquer une application entre différents clusters en utili
 
 
 
+[[migrate-applications-from-one-storage-class-to-another-storage-class]]
 == Migrer des applications d'une classe de stockage à une autre classe de stockage
 
 Vous pouvez migrer des applications d'une classe de stockage à une autre en restaurant une sauvegarde dans la classe de stockage de destination.

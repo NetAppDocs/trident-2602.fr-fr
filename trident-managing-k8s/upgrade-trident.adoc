@@ -16,6 +16,7 @@ summary: 'Trident adopte un rythme de publication de quatre mois, avec trois mis
 
 
 
+[[considerations-before-upgrading]]
 == Considérations avant la mise à niveau
 
 Lors de la mise à niveau vers la dernière version de Trident, tenez compte des points suivants :
@@ -33,6 +34,7 @@ Lors de la mise à niveau vers la dernière version de Trident, tenez compte des
 
 
 
+[[step-1-select-a-version]]
 == Étape 1 : Sélectionnez une version
 
 Les versions de Trident suivent une `YY.MM` convention de nommage basée sur la date, où « YY » sont les deux derniers chiffres de l'année et « MM » le mois. Les versions dot suivent une `YY.MM.X` convention, où « X » est le niveau de correctif. Vous sélectionnerez la version vers laquelle effectuer la mise à niveau en fonction de la version à partir de laquelle vous effectuez la mise à niveau.
@@ -51,6 +53,7 @@ NOTE: Lors de la mise à niveau à l'aide de l'opérateur Trident sur OpenShift 
 
 
 
+[[step-2-determine-the-original-installation-method]]
 == Étape 2 : Déterminez la méthode d'installation d'origine
 
 Pour déterminer la version que vous avez utilisée pour installer Trident :
@@ -71,6 +74,7 @@ Pour déterminer la version que vous avez utilisée pour installer Trident :
 
 
 
+[[step-3-select-an-upgrade-method]]
 == Étape 3 : Sélectionnez une méthode de mise à niveau
 
 En règle générale, vous devez effectuer la mise à niveau en utilisant la même méthode que celle employée lors de l'installation initiale, cependant vous pouvez link:../trident-install/kubernetes-deploy.html#moving-between-installation-methods["passer d'une méthode d'installation à une autre"]. Il existe deux options pour mettre à niveau Trident.

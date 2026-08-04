@@ -16,6 +16,7 @@ La fonctionnalité de détachement forcé de Trident permet de détacher automat
 
 
 
+[[details-about-force-detach]]
 == Détails concernant le détachement forcé
 
 Le détachement forcé est disponible pour `ontap-san`, `ontap-san-economy`, `ontap-nas` et `ontap-nas-economy` uniquement. Avant d'activer le détachement forcé, l'arrêt brutal des nœuds (NGNS) doit être activé sur le cluster Kubernetes. NGNS est activé par défaut pour Kubernetes 1.28 et versions ultérieures. Pour plus d'informations, consultez link:https://kubernetes.io/docs/concepts/cluster-administration/node-shutdown/#non-graceful-node-shutdown["Kubernetes : arrêt non gracieux d'un nœud"^].
@@ -44,12 +45,14 @@ Lorsque l'intégrité du nœud est rétablie et que la contamination est supprim
 
 
 
+[[details-about-automated-failover]]
 == Détails sur le basculement automatique
 
 Vous pouvez automatiser le processus de déconnexion forcée grâce à l'intégration avec link:https://github.com/medik8s/node-healthcheck-operator["opérateur de vérification de l'état des nœuds (NHC)"^]. Lorsqu'une défaillance de nœud se produit, NHC déclenche la remédiation du nœud Trident (TNR) et la déconnexion forcée automatiquement en créant un CR TridentNodeRemediation dans l'espace de noms de Trident, définissant le nœud défaillant. La TNR est créée uniquement lors d'une défaillance de nœud et supprimée par NHC une fois que le nœud est remis en ligne ou supprimé.
 
 
 
+[[failed-node-pod-removal-process]]
 === Échec du processus de suppression du pod du nœud
 
 Le basculement automatique sélectionne les charges de travail à retirer du nœud défaillant. Lorsqu'un TNR est créé, le contrôleur TNR marque le nœud comme sale, empêchant toute nouvelle publication de volume et commence à supprimer les pods compatibles avec le détachement forcé ainsi que leurs attachements de volumes.
@@ -88,6 +91,7 @@ Ces annotations peuvent être appliquées à n'importe quel pod.
 ====
 
 
+[[tridentnoderemediation-cr]]
 === CR TridentNodeRemediation
 
 Le TridentNodeRemediation (TNR) CR définit un nœud défaillant. Le nom du TNR est le nom du nœud défaillant.
@@ -135,6 +139,7 @@ Les TNR peuvent se trouver dans l'un des états suivants :
 
 
 
+[[enabling-automated-failover]]
 === Activation du basculement automatique
 
 *Prérequis* :
@@ -150,7 +155,7 @@ Les TNR peuvent se trouver dans l'un des états suivants :
 
 
 
-NOTE: Vous pouvez également utiliser d'autres méthodes pour détecter les défaillances de nœud, comme spécifié dans la section <<Integrating Custom Node Health Check Solutions>> ci-dessous.
+NOTE: Vous pouvez également utiliser d'autres méthodes pour détecter les défaillances de nœud, comme spécifié dans la section <<Intégration de solutions personnalisées de vérification de l'état des nœuds>> ci-dessous.
 
 Voir link:https://www.redhat.com/en/blog/node-health-check-operator["Opérateur de vérification de l'état des nœuds"^] pour plus d'informations.
 
@@ -198,6 +203,7 @@ Pour plus d'options de configuration, veuillez vous référer à link:https://gi
 
 
 
+[[additional-setup-information]]
 === Informations de configuration supplémentaires
 
 Lorsque Trident est installé avec le détachement forcé activé, deux ressources supplémentaires sont automatiquement créées dans l'espace de noms Trident pour faciliter l'intégration avec NHC : TridentNodeRemediationTemplate (TNRT) et ClusterRole.
@@ -246,6 +252,7 @@ rules:
 ----
 
 
+[[k8s-cluster-upgrades-and-maintenance]]
 === Mises à niveau et maintenance des clusters K8s
 
 Pour éviter tout basculement, suspendez le basculement automatique pendant la maintenance ou la mise à niveau de K8s, lorsque les nœuds doivent être arrêtés ou redémarrés. Vous pouvez suspendre le CR NHC (décrit ci-dessus) en modifiant son CR :
@@ -256,6 +263,7 @@ Cela suspend le basculement automatique. Pour réactiver le basculement automati
 
 
 
+[[limitations]]
 === Limitations
 
 * Les opérations d'E/S sont bloquées uniquement sur les nœuds défaillants pour les volumes pris en charge par force-detach. Seuls les pods utilisant des volumes/PVCs pris en charge par force-detach sont automatiquement supprimés.
@@ -264,6 +272,7 @@ Cela suspend le basculement automatique. Pour réactiver le basculement automati
 
 
 
+[[integrating-custom-node-health-check-solutions]]
 === Intégration de solutions personnalisées de vérification de l'état des nœuds
 
 Vous pouvez remplacer Node Healthcheck Operator par d'autres outils de détection des pannes de nœuds pour déclencher un basculement automatique. Pour garantir la compatibilité avec le mécanisme de basculement automatique, votre solution personnalisée doit :

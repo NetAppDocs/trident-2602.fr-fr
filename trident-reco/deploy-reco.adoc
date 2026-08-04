@@ -16,6 +16,7 @@ Utilisez les recommandations énumérées ici lors du déploiement de Trident.
 
 
 
+[[deploy-to-a-dedicated-namespace]]
 == Déployer dans un espace de noms dédié
 
 https://kubernetes.io/docs/concepts/overview/working-with-objects/namespaces/["Espaces de noms"^] assurent une séparation administrative entre différentes applications et constituent une barrière au partage des ressources. Par exemple, un PVC d'un espace de noms ne peut pas être consommé depuis un autre. Trident fournit des ressources PV à tous les espaces de noms du cluster Kubernetes et exploite ainsi un compte de service disposant de privilèges élevés.
@@ -24,6 +25,7 @@ De plus, l'accès au pod Trident pourrait permettre à un utilisateur d'accéder
 
 
 
+[[use-quotas-and-range-limits-to-control-storage-consumption]]
 == Utilisez des quotas et des limites de plage pour contrôler la consommation de stockage
 
 Kubernetes possède deux fonctionnalités qui, combinées, offrent un mécanisme puissant pour limiter la consommation de ressources par les applications. Le  https://kubernetes.io/docs/concepts/policy/resource-quotas/#storage-resource-quota["mécanisme de quota de stockage"^] permet à l'administrateur de mettre en œuvre des limites de consommation de capacité et de nombre d'objets, globales et spécifiques à chaque classe de stockage, sur une base par espace de noms. De plus, l'utilisation d'un  https://kubernetes.io/docs/tasks/administer-cluster/limit-storage-consumption/#limitrange-to-limit-requests-for-storage["limite de portée"^] garantit que les requêtes PVC respectent à la fois une valeur minimale et maximale avant que la demande ne soit transmise au provisionneur.

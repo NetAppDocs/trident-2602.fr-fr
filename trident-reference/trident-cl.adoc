@@ -16,6 +16,7 @@ Trident propose plusieurs options en ligne de commande pour l'orchestrateur Trid
 
 
 
+[[logging]]
 == Journalisation
 
 `-debug`:: Active la sortie de débogage.
@@ -24,6 +25,7 @@ Trident propose plusieurs options en ligne de commande pour l'orchestrateur Trid
 
 
 
+[[kubernetes]]
 == Kubernetes
 
 `-k8s_pod`:: Utilisez cette option ou `-k8s_api_server` pour activer la prise en charge de Kubernetes. En la configurant, Trident utilise les identifiants du compte de service Kubernetes du pod qui le contient pour contacter le serveur d'API. Cela ne fonctionne que lorsque Trident s'exécute en tant que pod dans un cluster Kubernetes avec les comptes de service activés.
@@ -32,6 +34,7 @@ Trident propose plusieurs options en ligne de commande pour l'orchestrateur Trid
 
 
 
+[[docker]]
 == Docker
 
 `-volume_driver <name>`:: Nom du pilote utilisé lors de l'enregistrement du plugin Docker. La valeur par défaut est  `netapp`.
@@ -41,6 +44,7 @@ Trident propose plusieurs options en ligne de commande pour l'orchestrateur Trid
 
 
 
+[[rest]]
 == REST
 
 `-address <ip-or-host>`:: Spécifie l'adresse sur laquelle le serveur REST de Trident doit écouter. Par défaut, localhost. Lorsqu'il écoute sur localhost et s'exécute dans un pod Kubernetes, l'interface REST n'est pas directement accessible depuis l'extérieur du pod. Utilisez  `-address ""` pour rendre l'interface REST accessible depuis l'adresse IP du pod.

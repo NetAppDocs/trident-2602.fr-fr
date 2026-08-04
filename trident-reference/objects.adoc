@@ -16,6 +16,7 @@ Vous pouvez interagir avec Kubernetes et Trident via des API REST en lisant et e
 
 
 
+[[how-do-the-objects-interact-with-one-another]]
 == Comment les objets interagissent-ils entre eux ?
 
 Peut-être que la façon la plus simple de comprendre les objets, leur utilité et la façon dont ils interagissent, est de suivre une seule demande de stockage d'un utilisateur Kubernetes :
@@ -36,6 +37,7 @@ TIP: Pour en savoir plus sur les objets Kubernetes, nous vous recommandons vivem
 
 
 
+[[kubernetes-persistentvolumeclaim-objects]]
 == Objets  `PersistentVolumeClaim` Kubernetes
 
 Un objet  `PersistentVolumeClaim`Kubernetes est une demande de stockage effectuée par un utilisateur d'un cluster Kubernetes.
@@ -98,6 +100,7 @@ Le  `sample-input`répertoire contient des exemples de définitions de PVC à ut
 
 
 
+[[kubernetes-persistentvolume-objects]]
 == Objets  `PersistentVolume` Kubernetes
 
 Un objet  `PersistentVolume`Kubernetes représente un espace de stockage mis à la disposition du cluster Kubernetes. Il a un cycle de vie indépendant du pod qui l'utilise.
@@ -113,6 +116,7 @@ Lorsque vous créez un PVC faisant référence à un volume basé sur Trident `S
 
 
 
+[[kubernetes-storageclass-objects]]
 == Objets  `StorageClass` Kubernetes
 
 Les objets Kubernetes `StorageClass` sont spécifiés par leur nom dans  `PersistentVolumeClaims` afin de provisionner le stockage avec un ensemble de propriétés. La classe de stockage elle-même identifie le provisionneur à utiliser et définit cet ensemble de propriétés dans des termes que le provisionneur comprend.
@@ -157,6 +161,7 @@ Les attributs de stockage et leurs valeurs possibles peuvent être classés en a
 
 
 
+[[storage-pool-selection-attributes]]
 === Attributs de sélection du pool de stockage
 
 Ces paramètres déterminent quels pools de stockage gérés par Trident doivent être utilisés pour provisionner des volumes d'un type donné.
@@ -206,6 +211,7 @@ Dans les  `storagePools` et  `additionalStoragePools` paramètres, chaque entré
 
 
 
+[[kubernetes-attributes]]
 === Attributs Kubernetes
 
 Ces attributs n'ont aucune incidence sur la sélection des pools de stockage/backends par Trident lors du provisionnement dynamique. Au lieu de cela, ces attributs fournissent simplement des paramètres pris en charge par les volumes persistants Kubernetes. Les nœuds de travail sont responsables des opérations de création du système de fichiers et peuvent nécessiter des utilitaires de système de fichiers, tels que xfsprogs.
@@ -241,6 +247,7 @@ Pour les pilotes de stockage NFS, un système de fichiers existe déjà dans l�
 ====
 
 
+[[kubernetes-volumesnapshotclass-objects]]
 == Objets  `VolumeSnapshotClass` Kubernetes
 
 Les objets Kubernetes `VolumeSnapshotClass` sont analogues à  `StorageClasses`. Ils permettent de définir plusieurs classes de stockage et sont référencés par les snapshots de volume pour associer le snapshot à la classe de snapshot requise. Chaque snapshot de volume est associé à une seule classe de snapshot de volume.
@@ -260,6 +267,7 @@ Le  `driver` indique à Kubernetes que les demandes de snapshots de volume de la
 
 
 
+[[kubernetes-volumesnapshot-objects]]
 == Objets  `VolumeSnapshot` Kubernetes
 
 Un objet Kubernetes `VolumeSnapshot` est une demande de création d'un instantané d'un volume. De même qu'un PVC représente une demande faite par un utilisateur pour un volume, un instantané de volume est une demande faite par un utilisateur pour créer un instantané d'un PVC existant.
@@ -272,6 +280,7 @@ NOTE: Le cycle de vie d'un VolumeSnapshot est indépendant du PVC source : un sn
 
 
 
+[[kubernetes-volumesnapshotcontent-objects]]
 == Objets  `VolumeSnapshotContent` Kubernetes
 
 Un objet Kubernetes `VolumeSnapshotContent` représente un instantané pris à partir d'un volume déjà provisionné. Il est analogue à un `PersistentVolume` et désigne un instantané provisionné sur le cluster de stockage. À l'instar de `PersistentVolumeClaim` et de `PersistentVolume` objets, lorsqu'un instantané est créé, l'objet  `VolumeSnapshotContent` maintient une correspondance un-à-un avec l'objet  `VolumeSnapshot` qui a demandé la création de l'instantané.
@@ -285,6 +294,7 @@ NOTE: En règle générale, vous n'avez pas besoin de gérer l' `VolumeSnapshotC
 
 
 
+[[kubernetes-volumegroupsnapshotclass-objects]]
 == Objets  `VolumeGroupSnapshotClass` Kubernetes
 
 Les objets Kubernetes `VolumeGroupSnapshotClass` sont analogues à  `VolumeSnapshotClass`. Ils permettent de définir plusieurs classes de stockage et sont référencés par les snapshots de groupes de volumes afin d'associer le snapshot à la classe de snapshot requise. Chaque snapshot de groupe de volumes est associé à une seule classe de snapshot de groupe de volumes.
@@ -306,6 +316,7 @@ Le  `driver` indique à Kubernetes que les demandes de snapshots de groupes de v
 
 
 
+[[kubernetes-volumegroupsnapshot-objects]]
 == Objets  `VolumeGroupSnapshot` Kubernetes
 
 Un objet Kubernetes `VolumeGroupSnapshot` correspond à une requête de création d'un instantané de plusieurs volumes. De même qu'un PVC représente une requête d'un utilisateur pour un volume, un instantané de groupe de volumes correspond à une requête d'un utilisateur visant à créer un instantané d'un PVC existant.
@@ -317,6 +328,7 @@ NOTE: Le cycle de vie d'un VolumeGroupSnapshot est indépendant du PVC source : 
 
 
 
+[[kubernetes-volumegroupsnapshotcontent-objects]]
 == Objets  `VolumeGroupSnapshotContent` Kubernetes
 
 Un objet Kubernetes `VolumeGroupSnapshotContent` représente un instantané de groupe pris à partir d'un volume déjà provisionné. Il est analogue à un `PersistentVolume` et désigne un instantané provisionné sur le cluster de stockage. À l'instar de `PersistentVolumeClaim` et de `PersistentVolume` objets, lorsqu'un instantané est créé, l'objet  `VolumeSnapshotContent` maintient une correspondance un-à-un avec l'objet  `VolumeSnapshot` qui a demandé la création de l'instantané.
@@ -327,6 +339,7 @@ Lorsqu'une requête de snapshot est reçue, Trident crée le snapshot du groupe 
 
 
 
+[[kubernetes-customresourcedefinition-objects]]
 == Objets  `CustomResourceDefinition` Kubernetes
 
 Les ressources personnalisées Kubernetes sont des points de terminaison de l'API Kubernetes définis par l'administrateur et utilisées pour regrouper des objets similaires. Kubernetes prend en charge la création de ressources personnalisées pour stocker une collection d'objets. Vous pouvez obtenir ces définitions de ressources en exécutant  `kubectl get crds`.
@@ -345,6 +358,7 @@ Voici quelques points à retenir concernant les CRD de Trident :
 
 
 
+[[trident-storageclass-objects]]
 == Trident `StorageClass` objets
 
 Trident crée des classes de stockage correspondantes pour les objets Kubernetes `StorageClass` qui spécifient `csi.trident.netapp.io` dans leur champ provisioner. Le nom de la classe de stockage correspond à celui de l'objet Kubernetes `StorageClass` qu'elle représente.
@@ -358,6 +372,7 @@ Vous pouvez créer des configurations de classes de stockage pour définir direc
 
 
 
+[[trident-backend-objects]]
 == Objets backend Trident
 
 Les backends représentent les fournisseurs de stockage sur lesquels Trident provisionne les volumes ; une seule instance de Trident peut gérer un nombre quelconque de backends.
@@ -369,6 +384,7 @@ Pour plus d'informations sur la manière de construire ces objets, reportez-vous
 
 
 
+[[trident-storagepool-objects]]
 == Trident `StoragePool` objets
 
 Les pools de stockage représentent les emplacements distincts disponibles pour le provisionnement sur chaque backend. Pour ONTAP, ils correspondent à des agrégats dans les SVM. Pour NetApp HCI/SolidFire, ils correspondent à des niveaux de QoS définis par l'administrateur. Chaque pool de stockage possède un ensemble d'attributs de stockage spécifiques, qui définissent ses caractéristiques de performance et de protection des données.
@@ -377,6 +393,7 @@ Contrairement aux autres objets ici, les candidats au pool de stockage sont touj
 
 
 
+[[trident-volume-objects]]
 == Trident `Volume` objets
 
 Les volumes constituent l'unité de base du provisionnement et comprennent les points de terminaison backend, tels que les partages NFS, ainsi que les LUN iSCSI et FC. Dans Kubernetes, ils correspondent directement à `PersistentVolumes`. Lorsque vous créez un volume, assurez-vous qu'il possède une classe de stockage, qui détermine où ce volume peut être provisionné, ainsi qu'une taille.
@@ -448,6 +465,7 @@ Vous pouvez utiliser des configurations de volume pour provisionner directement 
 
 
 
+[[trident-snapshot-objects]]
 == Trident `Snapshot` objets
 
 Les snapshots sont des copies de volumes à un instant précis, permettant de provisionner de nouveaux volumes ou de restaurer un état. Dans Kubernetes, ils correspondent directement à  `VolumeSnapshotContent` objets. Chaque snapshot est associé à un volume, qui constitue la source des données du snapshot.
@@ -490,6 +508,7 @@ Lorsqu'une requête d'objet  `VolumeSnapshot` Kubernetes est créée, Trident fo
 
 
 
+[[trident-resourcequota-object]]
 == Trident `ResourceQuota` objet
 
 Le daemonset Trident consomme une  `system-node-critical`Priority Class — la Priority Class la plus élevée disponible dans Kubernetes — pour garantir que Trident puisse identifier et nettoyer les volumes lors de l'arrêt progressif des nœuds et permettre aux pods du daemonset Trident de préempter les charges de travail de priorité inférieure dans les clusters où la pression sur les ressources est élevée.
@@ -520,6 +539,7 @@ Pour plus d'informations sur les quotas de ressources, veuillez consulter link:h
 
 
 
+[[clean-up-resourcequota-if-installation-fails]]
 === Nettoyez `ResourceQuota` si l'installation échoue
 
 Dans les rares cas où l'installation échoue après la création de l' `ResourceQuota`objet, essayez d'abord link:../trident-managing-k8s/uninstall-trident.html["désinstallation"]puis réinstallez.
@@ -528,6 +548,7 @@ Si cela ne fonctionne pas, supprimez manuellement l' `ResourceQuota`objet.
 
 
 
+[[remove-resourcequota]]
 === Retirer `ResourceQuota`
 
 Si vous préférez contrôler vous-même l'allocation de vos ressources, vous pouvez supprimer l'objet Trident `ResourceQuota` à l'aide de la commande :

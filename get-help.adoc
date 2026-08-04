@@ -16,6 +16,7 @@ NetApp propose une assistance pour Trident de diverses manières. De nombreuses 
 
 
 
+[[trident-support-lifecycle]]
 == Cycle de vie du support Trident
 
 Trident propose trois niveaux d'assistance selon votre version. Consultez link:https://mysupport.netapp.com/site/info/version-support["NetApp Prise en charge des versions logicielles pour les définitions"^].
@@ -83,24 +84,28 @@ link:https://docs.netapp.com/us-en/trident-2304/index.html["23,04"^]
 |===
 
 
+[[self-support]]
 == Autonomie
 
 Pour obtenir une liste complète des articles de dépannage, consultez  https://kb.netapp.com/Advice_and_Troubleshooting/Cloud_Services/Trident_Kubernetes["NetApp Knowledgebase (connexion requise)"^].
 
 
 
+[[community-support]]
 == soutien communautaire
 
 Il existe une communauté publique dynamique d'utilisateurs de conteneurs (y compris les développeurs de Trident) sur notre link:https://discord.gg/NetApp["Chaîne Discord"^]. C'est un excellent endroit pour poser des questions générales sur le projet et discuter de sujets connexes avec des pairs partageant les mêmes idées.
 
 
 
+[[netapp-technical-support]]
 == Support technique NetApp
 
 Pour obtenir de l'aide concernant Trident, créez un dossier de support à l'aide de  `tridentctl logs -a -n trident` et envoyez-le à  `NetApp Support <Getting Help>`.
 
 
 
+[[for-more-information]]
 == Pour plus d'informations
 
 * link:https://github.com/NetApp/trident["Ressources Trident"^]

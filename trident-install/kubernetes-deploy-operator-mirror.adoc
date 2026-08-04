@@ -16,6 +16,7 @@ Vous pouvez déployer manuellement l'opérateur Trident pour installer Trident. 
 
 
 
+[[critical-information-about-trident]]
 == Informations essentielles sur Trident
 
 *Vous devez lire les informations essentielles suivantes concernant Trident.*
@@ -36,12 +37,13 @@ L'utilisation d'une configuration sans multipath ou l'utilisation de `find_multi
 ====
 
 
+[[manually-deploy-the-trident-operator-and-install-trident]]
 == Déployez manuellement l'opérateur Trident et installez Trident
 
 Vérifiez link:kubernetes-deploy.html["aperçu de l'installation"] pour vous assurer que vous avez respecté les prérequis d'installation et sélectionné la bonne option d'installation pour votre environnement.
 
 .Avant de commencer
-Connectez-vous à l'hôte Linux et vérifiez qu'il gère un système fonctionnel et link:requirements.html["cluster Kubernetes pris en charge"^] que vous disposez des privilèges nécessaires.
+Connectez-vous à l'hôte Linux et vérifiez qu'il gère un système fonctionnel et link:../trident-get-started/requirements.html["cluster Kubernetes pris en charge"] que vous disposez des privilèges nécessaires.
 
 
 NOTE: Avec OpenShift, utilisez  `oc` au lieu de  `kubectl` dans tous les exemples qui suivent, et connectez-vous d'abord en tant que *system:admin* en exécutant  `oc login -u system:admin` ou  `oc login -u kube-admin`.
@@ -72,6 +74,7 @@ kubectl run -i --tty ping --image=busybox --restart=Never --rm -- \
 ====
 
 
+[[step-1-download-the-trident-installer-package]]
 === Étape 1 : Téléchargez le package d’installation de Trident
 
 Le package d'installation de Trident contient tout le nécessaire pour déployer l'opérateur Trident et installer Trident. Téléchargez et extrayez la dernière version du programme d'installation Trident depuis link:https://github.com/NetApp/trident/releases/latest["la section _Assets_ sur GitHub"^].
@@ -84,6 +87,7 @@ cd trident-installer
 ----
 
 
+[[step-2-create-the-tridentorchestrator-crd]]
 === Étape 2 : Créez le  `TridentOrchestrator` CRD
 
 Créez la `TridentOrchestrator` définition de ressource personnalisée (CRD). Vous créerez une `TridentOrchestrator` ressource personnalisée ultérieurement. Utilisez la version YAML CRD appropriée dans `deploy/crds` pour créer la `TridentOrchestrator` CRD :
@@ -94,6 +98,7 @@ kubectl create -f deploy/crds/<VERSION>.yaml
 ----
 
 
+[[step-3-update-the-registry-location-in-the-operator]]
 === Étape 3 : Mettre à jour l’emplacement du registre dans l’opérateur
 
 Dans  `/deploy/operator.yaml`, mettez à jour  `image: docker.io/netapp/trident-operator:26.02.0` pour refléter l'emplacement de votre registre d'images. Votre link:../trident-get-started/requirements.html#container-images-and-corresponding-kubernetes-versions["Images de Trident et de CSI"] peut être situé dans un registre ou dans des registres différents, mais toutes les images CSI doivent être situées dans le même registre. Par exemple :
@@ -104,6 +109,7 @@ Dans  `/deploy/operator.yaml`, mettez à jour  `image: docker.io/netapp/trident-
 
 
 
+[[step-4-deploy-the-trident-operator]]
 === Étape 4 : Déployer l’opérateur Trident
 
 Le programme d'installation Trident fournit un fichier bundle qui peut être utilisé pour installer l'opérateur et créer les objets associés. Le fichier bundle est un moyen simple de déployer l'opérateur et d'installer Trident en utilisant une configuration par défaut.
@@ -157,6 +163,7 @@ IMPORTANT: Il ne doit y avoir qu'une seule instance de l'opérateur dans un clus
 
 
 
+[[step-5-update-the-image-registry-location-in-the-tridentorchestrator]]
 === Étape 5 : Mettez à jour l’emplacement du registre d’images dans le `TridentOrchestrator`
 
 Votre link:../trident-get-started/requirements.html#container-images-and-corresponding-kubernetes-versions["Images de Trident et de CSI"] peut être situé dans un registre ou dans des registres différents, mais toutes les images CSI doivent être situées dans le même registre. Mettez à jour  `deploy/crds/tridentorchestrator_cr.yaml` pour ajouter les spécifications d’emplacement supplémentaires en fonction de la configuration de votre registre.
@@ -184,6 +191,7 @@ tridentImage: "<your-registry>/trident:26.02.0"
 ====
 
 
+[[step-6-create-the-tridentorchestrator-and-install-trident]]
 === Étape 6 : Créez le `TridentOrchestrator` et installez Trident
 
 Vous pouvez maintenant créer le `TridentOrchestrator` et installer Trident. Vous pouvez également link:kubernetes-customize-deploy.html["Personnalisez votre installation Trident"]affiner l'installation à l'aide des attributs dans la `TridentOrchestrator` spécification. L'exemple suivant montre une installation où les images Trident et CSI sont situées dans des registres différents.
@@ -236,12 +244,14 @@ Events:
 ----
 
 
+[[verify-the-installation]]
 == Vérifiez l'installation
 
 Il existe plusieurs façons de vérifier votre installation.
 
 
 
+[[using-tridentorchestrator-status]]
 === Utilisation `TridentOrchestrator` du statut
 
 L'état de `TridentOrchestrator` indique si l'installation a réussi et affiche la version de Trident installée. Pendant l'installation, l'état de `TridentOrchestrator` change de `Installing` à `Installed`. Si vous observez l'état `Failed` et que l'opérateur ne parvient pas à se rétablir tout seul, link:../troubleshooting.html["vérifiez les journaux"].
@@ -274,6 +284,7 @@ L'état de `TridentOrchestrator` indique si l'installation a réussi et affiche 
 |===
 
 
+[[using-pod-creation-status]]
 === Utilisation de l'état de création du pod
 
 Vous pouvez confirmer si l'installation de Trident est terminée en consultant le statut des pods créés :
@@ -291,6 +302,7 @@ trident-operator-766f7b8658-ldzsv          1/1     Running   0           3m
 ----
 
 
+[[using-tridentctl]]
 === En utilisant `tridentctl`
 
 Vous pouvez utiliser  `tridentctl` pour vérifier la version de Trident installée.

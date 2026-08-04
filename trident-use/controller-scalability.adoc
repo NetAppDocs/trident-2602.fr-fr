@@ -16,10 +16,12 @@ Trident introduit la scalabilité des contrôleurs grâce à une meilleure gesti
 
 
 
+[[key-concepts-and-definitions]]
 == Concepts clés et définitions
 
 
 
+[[controller-scalability]]
 === Évolutivité du contrôleur
 
 La scalabilité du contrôleur fait référence à la capacité du contrôleur Trident à traiter plusieurs opérations de stockage en parallèle, au lieu de les sérialiser derrière un seul verrou. Ces opérations comprennent la création, la suppression et le redimensionnement de volumes, la création et la suppression d'instantanés, la publication et la dépublication de volumes, ainsi que la gestion du backend.
@@ -28,12 +30,14 @@ Lorsque la mise à l'échelle du contrôleur est activée, les opérations sur d
 
 
 
+[[controller-scalability-support]]
 == Prise en charge de l'évolutivité du contrôleur
 
 Trident prend en charge l'évolutivité du contrôleur avec différents niveaux de maturité en fonction du pilote de stockage.
 
 
 
+[[general-availability]]
 === Disponibilité générale
 
 Les pilotes suivants prennent en charge la mise à l'échelle du contrôleur à la disponibilité générale dans Trident 26.02 :
@@ -50,12 +54,14 @@ Les `google-cloud-netapp-volumes` et `google-cloud-netapp-volumes-san` pilotes s
 ====
 
 
+[[enable-controller-scalability]]
 == Activer la scalabilité du contrôleur
 
 La scalabilité du contrôleur est contrôlée par l’option de configuration  `enableConcurrency`. Cette option doit être explicitement activée lors de l’installation de Trident ou lors de la mise à jour d’un déploiement existant.
 
 
 
+[[trident-operator-deployment]]
 === Déploiement de l'opérateur Trident
 
 Pour activer la scalabilité du contrôleur avec l'opérateur Trident, définissez  `enableConcurrency` sur  `true` dans la ressource personnalisée  `TridentOrchestrator`.
@@ -100,6 +106,7 @@ kubectl get torc trident -o jsonpath='{.status.currentInstallationParams.enableC
 ----
 
 
+[[helm-deployment]]
 === Déploiement Helm
 
 Pour activer la scalabilité du contrôleur avec Helm, définissez la valeur  `enableConcurrency` sur  `true`.
@@ -135,6 +142,7 @@ helm install trident netapp-trident/trident-operator --namespace trident --creat
 ----
 
 
+[[tridentctl-deployment]]
 === déploiement tridentctl
 
 Pour activer la scalabilité du contrôleur avec  `tridentctl`, transmettez le drapeau  `--enable-concurrency` lors de l'installation.
@@ -160,6 +168,7 @@ tridentctl install -n trident --enable-concurrency
 ----
 
 
+[[verify-controller-scalability-is-enabled]]
 === Vérifiez que la mise à l'échelle du contrôleur est activée
 
 Après avoir activé la mise à l'échelle du contrôleur, vérifiez que le contrôleur Trident fonctionne avec la concurrence activée en consultant les journaux du pod du contrôleur :
@@ -172,6 +181,7 @@ Vous devriez voir une entrée de journal indiquant que la concurrence est activ�
 
 
 
+[[technical-preview]]
 === Aperçu technique
 
 Les pilotes suivants prennent en charge la mise à l'échelle du contrôleur en tant qu'aperçu technique dans Trident 26.02 :
@@ -189,6 +199,7 @@ Pour ces pilotes :
 
 
 
+[[concurrency-behavior]]
 == Comportement de concurrence
 
 Lorsque la mise à l'échelle du contrôleur est activée :
@@ -202,6 +213,7 @@ Lorsque la mise à l'échelle du contrôleur est activée :
 
 
 
+[[known-limitations-and-considerations]]
 == Limitations et considérations connues
 
 Les considérations suivantes s'appliquent à l'évolutivité du contrôleur :
@@ -220,6 +232,7 @@ Les considérations suivantes s'appliquent à l'évolutivité du contrôleur :
 
 
 
+[[caveats-and-limitations]]
 == Avertissements et limitations
 
 Les limitations suivantes s'appliquent dans Trident 26.02 :
@@ -237,6 +250,7 @@ Les limitations suivantes s'appliquent dans Trident 26.02 :
 
 
 
+[[recommendations]]
 == Recommandations
 
 * Utilisez les pilotes à disponibilité générale (GA) pour les environnements de production nécessitant une évolutivité élevée

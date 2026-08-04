@@ -16,6 +16,7 @@ Vous pouvez personnaliser la configuration par défaut de Trident Protect pour r
 
 
 
+[[specify-trident-protect-container-resource-limits]]
 == Spécifiez les limites de ressources du conteneur Trident Protect
 
 Vous pouvez utiliser un fichier de configuration pour spécifier les limites de ressources pour les conteneurs Trident Protect après avoir installé Trident Protect. La définition de limites de ressources vous permet de contrôler la quantité de ressources du cluster consommée par les opérations de Trident Protect.
@@ -87,6 +88,7 @@ helm upgrade trident-protect -n trident-protect netapp-trident-protect/trident-p
 
 
 
+[[customize-security-context-constraints]]
 == Personnaliser les contraintes de contexte de sécurité
 
 Vous pouvez utiliser un fichier de configuration pour modifier les contraintes de contexte de sécurité OpenShift (SCCs) pour les conteneurs Trident Protect après avoir installé Trident Protect. Ces contraintes définissent les restrictions de sécurité pour les pods dans un cluster Red Hat OpenShift.
@@ -134,6 +136,7 @@ Cela remplacera les valeurs par défaut par celles spécifiées dans le  `scccon
 
 
 
+[[configure-additional-trident-protect-helm-chart-settings]]
 == Configurer des paramètres supplémentaires du chart Helm Trident Protect
 
 Vous pouvez personnaliser les paramètres AutoSupport et le filtrage des espaces de noms pour répondre à vos besoins spécifiques. Le tableau suivant décrit les paramètres de configuration disponibles :
@@ -204,6 +207,7 @@ helm upgrade trident-protect -n trident-protect netapp-trident-protect/trident-p
 ====
 
 
+[[restrict-trident-protect-pods-to-specific-nodes]]
 == Limiter les pods Trident Protect à des nœuds spécifiques
 
 Vous pouvez utiliser la contrainte de sélection de nœuds Kubernetes nodeSelector pour contrôler quels nœuds sont autorisés à exécuter des pods Trident Protect, en fonction des étiquettes de nœud. Par défaut, Trident Protect est limité aux nœuds exécutant Linux. Vous pouvez personnaliser davantage ces contraintes selon vos besoins.

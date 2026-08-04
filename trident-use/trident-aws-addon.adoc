@@ -16,6 +16,7 @@ NetApp Trident simplifie la gestion du stockage Amazon FSx for NetApp ONTAP dans
 
 
 
+[[prerequisites]]
 == Prérequis
 
 Assurez-vous de disposer des éléments suivants avant de configurer le module complémentaire Trident pour AWS EKS :
@@ -32,6 +33,7 @@ Assurez-vous de disposer des éléments suivants avant de configurer le module c
 
 
 
+[[steps]]
 == Étapes
 
 . Veillez à créer un rôle IAM et un secret AWS pour permettre aux pods EKS d'accéder aux ressources AWS. Pour obtenir des instructions, consultez link:../trident-use/trident-fsx-iam-role.html["Créez un rôle IAM et un secret AWS"^].
@@ -69,6 +71,7 @@ kubectl get pods -n trident
 
 
 
+[[installuninstall-the-trident-eks-add-on-using-cli]]
 == Installez/désinstallez l’add-on Trident EKS à l’aide de la CLI
 
 .Installez le module complémentaire NetApp Trident EKS à l'aide de l'interface de ligne de commande :

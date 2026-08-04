@@ -19,6 +19,7 @@ NOTE: Seul le  `ontap-nas` driver (avec le protocole NFS) est pris en charge pou
 
 
 
+[[backend-configuration-options]]
 == Options de configuration du backend
 
 Dans la configuration du backend Trident, il n'est pas nécessaire de préciser que votre système est un NetApp AFX storage system. Lorsque vous sélectionnez `ontap-nas` comme `storageDriverName`, Trident détecte automatiquement le système de stockage AFX. Certains paramètres de configuration du backend ne sont pas applicables aux systèmes de stockage AFX.
@@ -139,6 +140,7 @@ NOTE: Lorsque la liste d'agrégats est mise à jour dans SVM, la liste est mise 
 |===
 
 
+[[backend-configuration-options-for-provisioning-volumes]]
 == Options de configuration backend pour le provisionnement des volumes
 
 Vous pouvez contrôler le provisionnement par défaut à l'aide de ces options dans la section  `defaults` de la configuration. Pour un exemple, consultez les exemples de configuration ci-dessous.
@@ -194,6 +196,7 @@ NOTE: L'utilisation des groupes de règles QoS avec Trident requiert ONTAP 9.8 o
 
 
 
+[[volume-provisioning-examples]]
 === Exemples de provisionnement de volumes
 
 Voici un exemple avec des valeurs par défaut définies :
@@ -241,6 +244,7 @@ Les backends existants issus d'installations précédentes provisionneront les v
 
 
 
+[[minimal-configuration-examples]]
 == Exemples de configuration minimale
 
 Les exemples suivants présentent des configurations de base qui laissent la plupart des paramètres par défaut. C'est la manière la plus simple de définir un backend.
@@ -423,6 +427,7 @@ labels:
 ====
 
 
+[[examples-of-backends-with-virtual-pools]]
 == Exemples de backends avec pools virtuels
 
 Dans les exemples de fichiers de définition de backend ci-dessous, des valeurs par défaut spécifiques sont définies pour tous les pools de stockage, comme  `spaceReserve` à aucun,  `spaceAllocation` à faux, et  `encryption` à faux. Les pools virtuels sont définis dans la section storage.
@@ -608,6 +613,7 @@ storage:
 ====
 
 
+[[map-backends-to-storageclasses]]
 == Map backends vers StorageClasses
 
 Les définitions de StorageClass suivantes font référence à <<Exemples de backends avec pools virtuels>>. En utilisant le champ  `parameters.selector`, chaque StorageClass indique quels pools virtuels peuvent être utilisés pour héberger un volume. Le volume possédera les aspects définis dans le pool virtuel choisi.
@@ -683,6 +689,7 @@ Trident déterminera quel pool virtuel est sélectionné et s'assurera que l'exi
 
 
 
+[[update-datalif-after-initial-configuration]]
 == Mise à jour `dataLIF` après la configuration initiale
 
 Vous pouvez modifier le dataLIF après la configuration initiale en exécutant la commande suivante pour fournir le nouveau fichier JSON backend avec le dataLIF mis à jour.
@@ -696,10 +703,12 @@ NOTE: Si des PVC sont connectés à un ou plusieurs pods, vous devez mettre hors
 
 
 
+[[secure-smb-examples]]
 == Exemples de SMB sécurisés
 
 
 
+[[backend-configuration-with-ontap-nas-driver]]
 === Configuration du backend avec le pilote ontap-nas
 
 [source, yaml]
@@ -722,6 +731,7 @@ spec:
 ----
 
 
+[[backend-configuration-with-ontap-nas-economy-driver]]
 === Configuration du backend avec le pilote ontap-nas-economy
 
 [source, yaml]
@@ -744,6 +754,7 @@ spec:
 ----
 
 
+[[backend-configuration-with-storage-pool]]
 === Configuration du backend avec pool de stockage
 
 [source, yaml]
@@ -771,6 +782,7 @@ spec:
 ----
 
 
+[[storage-class-example-with-ontap-nas-driver]]
 === Exemple de classe de stockage avec le pilote ontap-nas
 
 [source, yaml]
@@ -796,6 +808,7 @@ NOTE: Assurez-vous d'ajouter `annotations` pour activer le SMB sécurisé. Le SM
 
 
 
+[[storage-class-example-with-ontap-nas-economy-driver]]
 === Exemple de classe de stockage avec le pilote ontap-nas-economy
 
 [source, yaml]
@@ -818,6 +831,7 @@ volumeBindingMode: Immediate
 ----
 
 
+[[pvc-example-with-a-single-ad-user]]
 === Exemple de PVC avec un seul utilisateur AD
 
 [source, yaml]
@@ -843,6 +857,7 @@ spec:
 ----
 
 
+[[pvc-example-with-multiple-ad-users]]
 === Exemple de PVC avec plusieurs utilisateurs AD
 
 [source, yaml]

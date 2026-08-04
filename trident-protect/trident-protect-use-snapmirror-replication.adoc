@@ -18,6 +18,7 @@ Avec Trident Protect, vous pouvez utiliser les capacités de réplication asynch
 
 
 
+[[namespace-annotations-and-labels-during-restore-and-failover-operations]]
 == Annotations et étiquettes d'espace de noms lors des opérations de restauration et de basculement
 
 Lors des opérations de restauration et de basculement, les étiquettes et annotations de l'espace de noms de destination sont mises à jour pour correspondre aux étiquettes et annotations de l'espace de noms source. Les étiquettes ou annotations de l'espace de noms source qui n'existent pas dans l'espace de noms de destination sont ajoutées, et toutes les étiquettes ou annotations déjà présentes sont remplacées pour correspondre à la valeur de l'espace de noms source. Les étiquettes ou annotations qui existent uniquement dans l'espace de noms de destination restent inchangées.
@@ -40,6 +41,7 @@ Si vous avez installé l'application source avec Helm avec le  `--create-namespa
 
 
 
+[[example]]
 === Exemple
 
 L'exemple suivant présente un espace de noms source et un espace de noms de destination, chacun possédant des annotations et des étiquettes différentes. Vous pouvez voir l'état de l'espace de noms de destination avant et après l'opération, et comment les annotations et les étiquettes sont combinées ou écrasées dans l'espace de noms de destination.
@@ -105,6 +107,7 @@ NOTE: Vous pouvez configurer Trident Protect pour geler et dégeler les système
 
 
 
+[[execution-hooks-during-failover-and-reverse-operations]]
 == Hooks d'exécution lors des opérations de basculement et d'inversion
 
 Lorsque vous utilisez une relation AppMirror pour protéger votre application, il existe des comportements spécifiques liés aux hooks d'exécution dont vous devez être conscient lors des opérations de basculement et d'inversion.
@@ -117,6 +120,7 @@ Pour en savoir plus sur les hooks d'exécution, reportez-vous à link:../trident
 
 
 
+[[set-up-a-replication-relationship]]
 == Configurer une relation de réplication
 
 La mise en place d'une relation de réplication implique les éléments suivants :
@@ -452,6 +456,7 @@ kubectl get amr -n my-app-namespace <relationship name> -o=jsonpath='{.status}' 
 
 
 
+[[fail-over-to-destination-cluster]]
 === Basculement vers le cluster de destination
 
 Avec Trident Protect, vous pouvez basculer les applications répliquées vers un cluster de destination. Cette procédure interrompt la relation de réplication et met l’application en ligne sur le cluster de destination. Trident Protect ne met pas l’application hors service sur le cluster source si elle était opérationnelle.
@@ -476,6 +481,7 @@ kubectl get amr -n my-app-namespace <relationship name> -o=jsonpath='{.status}' 
 
 
 
+[[resync-a-failed-over-replication-relationship]]
 === Resynchroniser une relation de réplication basculée
 
 L'opération de resynchronisation rétablit la relation de réplication. Après avoir effectué une opération de resynchronisation, l'application source d'origine devient l'application en cours d'exécution, et toutes les modifications apportées à l'application en cours d'exécution sur le cluster de destination sont annulées.
@@ -500,6 +506,7 @@ kubectl apply -f trident-protect-relationship.yaml -n my-app-namespace
 
 
 
+[[reverse-resync-a-failed-over-replication-relationship]]
 === Resynchroniser à l'inverse une relation de réplication ayant échoué
 
 Lorsque vous effectuez une resynchronisation inverse d'une relation de réplication ayant basculé, l'application de destination devient l'application source, et la source devient la destination. Les modifications apportées à l'application de destination pendant le basculement sont conservées.
@@ -513,6 +520,7 @@ Lorsque vous effectuez une resynchronisation inverse d'une relation de réplicat
 
 
 
+[[reverse-application-replication-direction]]
 == Inverser le sens de réplication de l'application
 
 Lorsque vous inversez le sens de la réplication, Trident Protect déplace l'application vers le système de stockage de destination tout en continuant à répliquer vers le système de stockage source d'origine. Trident Protect arrête l'application source et réplique les données vers la destination avant de basculer vers l'application de destination.
@@ -599,6 +607,7 @@ NOTE: À l'étape 2 de la procédure de basculement, incluez le champ  `spec.pro
 
 
 
+[[result]]
 === Résultat
 
 Les actions suivantes se produisent en raison de la réplication inverse :
@@ -613,6 +622,7 @@ Les actions suivantes se produisent en raison de la réplication inverse :
 
 
 
+[[fail-back-applications-to-the-original-source-cluster]]
 === Rétablir les applications sur le cluster source d'origine
 
 Avec Trident Protect, vous pouvez effectuer un « retour arrière » après une opération de basculement en utilisant la séquence d'opérations suivante. Dans ce workflow pour restaurer la direction de réplication d'origine, Trident Protect réplique (resynchronise) toutes les modifications de l'application vers l'application source d'origine avant d'inverser la direction de la réplication.
@@ -635,6 +645,7 @@ CAUTION: N’effectuez pas d’opération de resynchronisation normale, car cela
 
 
 
+[[delete-a-replication-relationship]]
 === Supprimer une relation de réplication
 
 Vous pouvez supprimer une relation de réplication à tout moment. Lorsque vous supprimez la relation de réplication d'une application, il en résulte deux applications distinctes sans aucune relation entre elles.

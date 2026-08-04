@@ -16,6 +16,7 @@ Un backend définit la relation entre Trident et un système de stockage. Il ind
 
 
 
+[[tridentbackendconfig]]
 == `TridentBackendConfig`
 
 `TridentBackendConfig` (`tbc`, `tbconfig`, `tbackendconfig`) est une CRD frontale avec espace de noms qui vous permet de gérer les backends Trident à l'aide de  `kubectl`. Les administrateurs Kubernetes et de stockage peuvent désormais créer et gérer des backends directement via l'interface de ligne de commande Kubernetes sans avoir besoin d'un utilitaire en ligne de commande dédié (`tridentctl`).
@@ -72,6 +73,7 @@ TIP: Les backends qui ont été créés avec  `tridentctl` n'ont pas d'objet  `T
 
 
 
+[[steps-overview]]
 == Aperçu des étapes
 
 Pour créer un nouveau backend en utilisant `kubectl`, vous devez procéder comme suit :
@@ -84,6 +86,7 @@ Après avoir créé un backend, vous pouvez observer son statut en utilisant  `k
 
 
 
+[[step-1-create-a-kubernetes-secret]]
 == Étape 1 : Créer un secret Kubernetes
 
 Créez un secret contenant les identifiants d'accès pour le backend. Ceci est unique à chaque service/plateforme de stockage. Voici un exemple :
@@ -176,6 +179,7 @@ Le secret créé à cette étape sera référencé dans le champ  `spec.credenti
 
 
 
+[[step-2-create-the-tridentbackendconfig-cr]]
 == Étape 2 : Créer la `TridentBackendConfig` demande de changement
 
 Vous êtes maintenant prêt à créer votre `TridentBackendConfig` CR. Dans cet exemple, un backend qui utilise le `ontap-san` driver est créé à l'aide de l' `TridentBackendConfig` objet présenté ci-dessous :
@@ -202,6 +206,7 @@ spec:
 ----
 
 
+[[step-3-verify-the-status-of-the-tridentbackendconfig-cr]]
 == Étape 3 : Vérifiez le statut du `TridentBackendConfig` CR
 
 Maintenant que vous avez créé le  `TridentBackendConfig` CR, vous pouvez vérifier l'état. Voir l'exemple suivant :
@@ -232,6 +237,7 @@ La phase peut prendre l'une des valeurs suivantes :
 
 
 
+[[optional-step-4-get-more-details]]
 == (Facultatif) Étape 4 : Obtenir plus de détails
 
 Vous pouvez exécuter la commande suivante pour obtenir plus d'informations sur votre backend :

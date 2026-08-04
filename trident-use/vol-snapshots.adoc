@@ -16,6 +16,7 @@ Les snapshots de volumes persistants (PV) Kubernetes permettent de créer des co
 
 
 
+[[overview]]
 == Aperçu
 
 La capture instantanée de volume est prise en charge par  `ontap-nas`, `ontap-nas-flexgroup`, `ontap-san`, `ontap-san-economy`, `solidfire-san`, `azure-netapp-files` et  `google-cloud-netapp-volumes` pilotes.
@@ -30,6 +31,7 @@ NOTE: Ne créez pas de contrôleur de snapshots si vous créez des snapshots de 
 
 
 
+[[create-a-volume-snapshot]]
 == Créer un instantané de volume
 
 .Étapes
@@ -114,6 +116,7 @@ Status:
 
 
 
+[[create-a-pvc-from-a-volume-snapshot]]
 == Créer un PVC à partir d'un instantané de volume
 
 Vous pouvez utiliser  `dataSource` pour créer un PVC en utilisant un VolumeSnapshot nommé  `<pvc-name>` comme source des données. Après la création du PVC, il peut être attaché à un pod et utilisé comme n'importe quel autre PVC.
@@ -147,6 +150,7 @@ spec:
 ----
 
 
+[[import-a-volume-snapshot]]
 == Importer un instantané de volume
 
 Trident prend en charge la link:https://kubernetes.io/docs/concepts/storage/volume-snapshots/#static["Processus de snapshot pré-provisionné Kubernetes"^] pour permettre à l'administrateur du cluster de créer un `VolumeSnapshotContent` objet et d'importer des instantanés créés en dehors de Trident.
@@ -238,6 +242,7 @@ spec:
 
 
 
+[[recover-volume-data-using-snapshots]]
 == Récupérer les données du volume à l'aide de snapshots
 
 Le répertoire des instantanés est masqué par défaut afin d'assurer une compatibilité maximale des volumes provisionnés à l'aide des  `ontap-nas` et  `ontap-nas-economy` pilotes. Activez le répertoire  `.snapshot` pour récupérer directement les données à partir des instantanés.
@@ -253,6 +258,7 @@ NOTE: Lorsque vous restaurez une copie instantanée, la configuration du volume 
 
 
 
+[[in-place-volume-restoration-from-a-snapshot]]
 == Restauration sur place du volume à partir d'un instantané
 
 Trident permet une restauration rapide et directe des volumes à partir d'un instantané grâce à la  `TridentActionSnapshotRestore` (TASR) CR. Cette CR fonctionne comme une action Kubernetes impérative et n'est pas conservée après la fin de l'opération.
@@ -352,12 +358,14 @@ metadata:
 ====
 
 
+[[delete-a-pv-with-associated-snapshots]]
 == Supprimez un PV avec les instantanés associés
 
 Lors de la suppression d'un volume persistant avec des snapshots associés, le volume Trident correspondant passe à l'état « Suppression en cours ». Supprimez les snapshots du volume pour supprimer le volume Trident.
 
 
 
+[[deploy-a-volume-snapshot-controller]]
 == Déployer un contrôleur d'instantané de volume
 
 Si votre distribution Kubernetes n'inclut pas le snapshot controller et les CRDs, vous pouvez les déployer comme suit.
@@ -397,6 +405,7 @@ NOTE: Si nécessaire, ouvrez `deploy/kubernetes/snapshot-controller/rbac-snapsho
 
 
 
+[[related-links]]
 == Liens associés
 
 * link:../trident-concepts/snapshots.html["Instantanés de volume"]

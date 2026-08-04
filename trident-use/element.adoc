@@ -16,6 +16,7 @@ Apprenez à créer et à utiliser un backend Element avec votre installation Tri
 
 
 
+[[element-driver-details]]
 == Détails du pilote Element
 
 Trident fournit le `solidfire-san` pilote de stockage permettant de communiquer avec le cluster. Les modes d'accès pris en charge sont : _ReadWriteOnce_ (RWO), _ReadOnlyMany_ (ROX), _ReadWriteMany_ (RWX), _ReadWriteOncePod_ (RWOP).
@@ -50,6 +51,7 @@ RWO, RWOP
 |===
 
 
+[[before-you-begin]]
 == Avant de commencer
 
 Vous aurez besoin des éléments suivants avant de créer un backend Element.
@@ -61,6 +63,7 @@ Vous aurez besoin des éléments suivants avant de créer un backend Element.
 
 
 
+[[backend-configuration-options]]
 == Options de configuration du backend
 
 Consultez le tableau suivant pour les options de configuration du backend :
@@ -113,6 +116,7 @@ WARNING: N'utilisez pas  `debugTraceFlags` sauf si vous effectuez un dépannage 
 
 
 
+[[example-1-backend-configuration-for-solidfire-san-driver-with-three-volume-types]]
 == Exemple 1 : Configuration du backend pour  `solidfire-san` driver avec trois types de volumes
 
 Cet exemple illustre un fichier backend utilisant l'authentification CHAP et modélisant trois types de volumes avec des garanties QoS spécifiques. Vous définirez ensuite probablement des classes de stockage pour utiliser chacune d'elles à l'aide du  `IOPS` storage class parameter.
@@ -148,6 +152,7 @@ Types:
 ----
 
 
+[[example-2-backend-and-storage-class-configuration-for-solidfire-san-driver-with-virtual-pools]]
 == Exemple 2 : Configuration du backend et de la classe de stockage pour  `solidfire-san` driver avec pools virtuels
 
 Cet exemple montre le fichier de définition du backend configuré avec des pools virtuels ainsi que StorageClasses qui y font référence.
@@ -266,6 +271,7 @@ parameters:
 ----
 
 
+[[find-more-information]]
 == Pour plus d'informations
 
 * link:../trident-concepts/vol-access-groups.html["Groupes d'accès au volume"^]

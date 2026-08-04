@@ -16,6 +16,7 @@ Créez un PersistentVolumeClaim (PVC) qui utilise le StorageClass Kubernetes con
 
 
 
+[[overview]]
 == Aperçu
 
 Un  https://kubernetes.io/docs/concepts/storage/persistent-volumes["_PersistentVolumeClaim_"^] (PVC) est une demande d'accès au PersistentVolume sur le cluster.
@@ -26,6 +27,7 @@ Après avoir créé le PVC, vous pouvez monter le volume dans un pod.
 
 
 
+[[create-the-pvc]]
 == Créer le PVC
 
 .Étapes
@@ -74,6 +76,7 @@ kubectl delete pod pv-pod
 
 
 
+[[sample-manifests]]
 === Exemples de manifestes
 
 .Exemples de manifestes PersistentVolumeClaim

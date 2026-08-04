@@ -18,6 +18,7 @@ Vous pouvez utiliser le plugin de ligne de commandes Trident Protect, qui est un
 
 
 
+[[install-the-trident-protect-cli-plugin]]
 == Installez le plugin CLI Trident Protect
 
 Avant d'utiliser l'utilitaire de ligne de commandes, vous devez l'installer sur la machine que vous utilisez pour accéder à votre cluster. Suivez ces étapes, selon que votre machine utilise un processeur x64 ou ARM.
@@ -98,6 +99,7 @@ NOTE: Copier le plugin dans un emplacement figurant dans votre variable PATH vou
 
 
 
+[[view-trident-cli-plugin-help]]
 == Afficher l'aide du plugin Trident CLI
 
 Vous pouvez utiliser les fonctionnalités d'aide intégrées du plugin pour obtenir une aide détaillée sur les capacités du plugin :
@@ -113,6 +115,7 @@ tridentctl-protect help
 
 
 
+[[enable-command-auto-completion]]
 == Activer la saisie semi-automatique des commandes
 
 Après avoir installé le plugin CLI Trident Protect, vous pouvez activer la saisie semi-automatique pour certaines commandes.
